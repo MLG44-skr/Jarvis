@@ -139,7 +139,10 @@ class MLGBot:
 
 
 def build_app(config: Config) -> Application:
-    brain = OllamaBrain(config.ollama_url, config.ollama_model, config.ollama_num_ctx)
+    brain = OllamaBrain(
+        config.ollama_url, config.ollama_model, config.ollama_num_ctx,
+        think=config.ollama_think, temperature=config.ollama_temperature,
+    )
     memory = Memory(config.data_dir / "mlg.db")
     http = httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "MLG-Personal-Assistant"})
     core = MLGCore(config, brain, memory, http)

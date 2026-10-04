@@ -205,3 +205,48 @@ def test_reminders_get_sent_once(memory):
     assert run(send_due(app, memory)) == 1
     assert app.bot.sent == [(555, "⏰ Przypominam, szefie: dentysta")]
     assert run(send_due(app, memory)) == 0
+
+
+# --- poprawki pod małe modele ---
+
+from mlg.brain.ollama import strip_thinking  # noqa: E402
+from mlg.tools import select_tools  # noqa: E402
+
+
+def test_strip_thinking():
+    assert strip_thinking("<think>hmm, szef chce...</think>\n\nSiema, szefie.") == "Siema, szefie."
+    assert strip_thinking("<think>urwane myślenie bez końca") == ""
+    assert strip_thinking("Zwykła odpowiedź") == "Zwykła odpowiedź"
+
+
+def test_ollama_think_flag_and_temperature():
+    seen = {}
+
+    def handler(req):
+        seen.update(json.loads(req.content))
+        return httpx.Response(200, json={"message": {"content": "<think>x</think>OK"}})
+
+    brain = OllamaBrain("http://o", "qwen3:8b", transport=httpx.MockTransport(handler), think=False, temperature=0.2)
+    assert run(brain.chat([{"role": "user", "content": "x"}]))["content"] == "OK"
+    assert seen["think"] is False and seen["options"]["temperature"] == 0.2
+
+    seen.clear()
+    run(ollama_with(handler).chat([{"role": "user", "content": "x"}]))
+    assert "think" not in seen
+
+
+def names(text):
+    return {t["function"]["name"] for t in select_tools(text)}
+
+
+def test_select_tools_routes_by_message():
+    assert names("siema, co tam?") == {"zapamietaj"}
+    assert names("lubię sushi") == {"zapamietaj"}
+    assert "dodaj_przypomnienie" in names("przypomnij mi jutro o 9 o dentyście")
+    assert "pogoda" in names("jaka jest pogoda w Gdańsku?")
+    assert "kurs_waluty" in names("po ile euro?")
+    assert "oblicz" in names("ile to 15*24")
+    assert "oblicz" in names("256 / 8")
+    assert {"dodaj_do_listy", "pokaz_liste"} <= names("dodaj mleko do listy zakupów")
+    assert "otworz" in names("odpal spotify")
+    assert "otworz" not in names("lubię słuchać spotify")

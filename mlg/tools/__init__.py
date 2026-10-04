@@ -1,6 +1,7 @@
 """Narzędzia, których MLG może używać (tool calling w Ollamie)."""
 
 import logging
+import re
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -14,6 +15,7 @@ from mlg.tools.currency import get_rate
 from mlg.tools.weather import get_weather
 
 log = logging.getLogger("mlg.tools")
+_DEFAULT_LAUNCHER = Launcher()
 
 
 def _fn(name: str, description: str, properties: dict, required: list[str]) -> dict:
@@ -96,6 +98,37 @@ TOOL_SPECS = [
         ["wyrazenie"],
     ),
 ]
+
+
+# Słowa, po których poznajemy, że wiadomość może potrzebować danego narzędzia.
+_ROUTES = {
+    "dodaj_przypomnienie": ("przypom", "budzik", "za minut", "minut", "godzin", "jutro o", "o godz", "obudź", "obudz"),
+    "pokaz_przypomnienia": ("przypom", "plan", "dziś", "dzis", "jutro", "zaplanow"),
+    "dodaj_do_listy": ("list", "zakup", "dodaj", "dopisz", "kup", "todo"),
+    "pokaz_liste": ("list", "zakup", "todo", "co mam kupić", "co mam kupic"),
+    "usun_z_listy": ("list", "zakup", "usuń", "usun", "skreśl", "skresl", "wyczyść", "wyczysc", "kupiłem", "kupilem"),
+    "pogoda": ("pogod", "temperatur", "deszcz", "pada", "zimno", "ciepło", "cieplo", "słońc", "slonc", "wiatr",
+               "stopni", "parasol", "kurtk", "śnieg", "snieg", "burz"),
+    "kurs_waluty": ("kurs", "walut", "euro", "eur", "dolar", "usd", "funt", "gbp", "frank", "chf", "korona", "jen", "po ile"),
+    "oblicz": ("ile to", "policz", "oblicz", "procent", "%", "razy", "podziel", "pierwiast", "do potęgi", "do potegi"),
+    "otworz": ("odpal", "otwórz", "otworz", "włącz", "wlacz", "uruchom", "pokaż folder", "pokaz folder"),
+}
+_MATH = re.compile(r"\d\s*[-+*/^x×÷]\s*\d")
+
+
+def select_tools(text: str, launcher: "Launcher | None" = None) -> list[dict]:
+    """Wybiera narzędzia pasujące do wiadomości. "zapamietaj" jest zawsze, żeby MLG uczył się szefa."""
+    t = text.lower()
+    names = {"zapamietaj"}
+    for name, keys in _ROUTES.items():
+        if any(k in t for k in keys):
+            names.add(name)
+    if _MATH.search(t):
+        names.add("oblicz")
+    lz = launcher or _DEFAULT_LAUNCHER
+    if lz.find(t) is not None and any(k in t for k in ("odpal", "otw", "włącz", "wlacz", "uruchom", "daj")):
+        names.add("otworz")
+    return [spec for spec in TOOL_SPECS if spec["function"]["name"] in names]
 
 
 def parse_when(kiedy: str | None, za_minut: Any, now: datetime) -> datetime:

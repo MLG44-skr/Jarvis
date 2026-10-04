@@ -5,7 +5,7 @@ import logging
 from mlg.brain import Brain, Message
 from mlg.memory import MAX_FACTS_IN_PROMPT, Memory
 from mlg.persona import system_prompt
-from mlg.tools import TOOL_SPECS, Toolbox
+from mlg.tools import Toolbox, select_tools
 
 log = logging.getLogger("mlg.agent")
 
@@ -20,9 +20,11 @@ async def respond(brain: Brain, memory: Memory, toolbox: Toolbox, user_id: int, 
         {"role": "user", "content": text},
     ]
 
+    # Mały model gubi się przy wielu narzędziach naraz, więc dajemy mu tylko te pasujące do wiadomości.
+    tools = select_tools(text)
     answer = ""
     for _ in range(MAX_STEPS):
-        reply = await brain.chat(messages, tools=TOOL_SPECS)
+        reply = await brain.chat(messages, tools=tools)
         if not reply["tool_calls"]:
             answer = reply["content"]
             break

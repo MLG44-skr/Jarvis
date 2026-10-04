@@ -21,6 +21,8 @@ class Config:
     hud_host: str = "127.0.0.1"
     hud_port: int = 0  # 0 = HUD wyłączony
     hud_auto_open: bool = False
+    ollama_think: bool | None = None
+    ollama_temperature: float = 0.4
 
 
 def _parse_ids(raw: str) -> frozenset[int]:
@@ -33,6 +35,13 @@ def _parse_ids(raw: str) -> frozenset[int]:
             raise SystemExit(f"ALLOWED_USER_IDS: '{part}' to nie jest liczba. Wpisz ID z @userinfobot.")
         ids.add(int(part))
     return frozenset(ids)
+
+
+def _parse_bool(raw: str) -> bool | None:
+    raw = raw.strip().lower()
+    if not raw:
+        return None
+    return raw in ("1", "true", "tak", "yes", "on")
 
 
 def load_config() -> Config:
@@ -55,4 +64,6 @@ def load_config() -> Config:
         hud_host=os.getenv("HUD_HOST", "127.0.0.1").strip(),
         hud_port=int(os.getenv("HUD_PORT", "8044") or 0),
         hud_auto_open=os.getenv("HUD_AUTO_OPEN", "1").strip().lower() in ("1", "true", "tak", "yes"),
+        ollama_think=_parse_bool(os.getenv("OLLAMA_THINK", "")),
+        ollama_temperature=float(os.getenv("OLLAMA_TEMPERATURE", "0.4")),
     )
