@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -14,6 +15,8 @@ class Config:
     ollama_model: str
     ollama_num_ctx: int
     history_limit: int
+    data_dir: Path
+    default_city: str
 
 
 def _parse_ids(raw: str) -> frozenset[int]:
@@ -42,4 +45,6 @@ def load_config() -> Config:
         ollama_model=os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
         ollama_num_ctx=int(os.getenv("OLLAMA_NUM_CTX", "8192")),
         history_limit=int(os.getenv("HISTORY_LIMIT", "20")),
+        data_dir=Path(os.getenv("DATA_DIR", "data")),
+        default_city=os.getenv("DEFAULT_CITY", "").strip(),
     )

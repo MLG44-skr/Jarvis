@@ -1,15 +1,19 @@
 """Bot Telegram: tu MLG odbiera i wysyła wiadomości."""
 
+import asyncio
 import logging
-from collections import defaultdict, deque
 
+import httpx
 from telegram import Update
 from telegram.constants import ChatAction
 from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 
-from mlg.brain import Brain, BrainError, Message, OllamaBrain
+from mlg.agent import respond
+from mlg.brain import Brain, BrainError, OllamaBrain
 from mlg.config import Config, load_config
-from mlg.persona import system_prompt
+from mlg.memory import Memory
+from mlg.reminders import reminder_loop
+from mlg.tools import Toolbox
 
 log = logging.getLogger("mlg")
 
@@ -17,10 +21,12 @@ TELEGRAM_LIMIT = 4096
 
 
 class MLGBot:
-    def __init__(self, config: Config, brain: Brain):
+    def __init__(self, config: Config, brain: Brain, memory: Memory, http: httpx.AsyncClient):
         self.config = config
         self.brain = brain
-        self.history: dict[int, deque[Message]] = defaultdict(lambda: deque(maxlen=config.history_limit))
+        self.memory = memory
+        self.http = http
+        self._locks: dict[int, asyncio.Lock] = {}
 
     def _allowed(self, update: Update) -> bool:
         user = update.effective_user
@@ -35,63 +41,126 @@ class MLGBot:
             "Jeśli to Ty jesteś szefem, wpisz je w pliku .env jako ALLOWED_USER_IDS i zrestartuj MLG."
         )
 
+    @staticmethod
+    async def _send(update: Update, text: str) -> None:
+        for i in range(0, len(text), TELEGRAM_LIMIT):
+            await update.message.reply_text(text[i : i + TELEGRAM_LIMIT])
+
+    # --- komendy ---
+
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not self._allowed(update):
             return await self._deny(update)
         await update.message.reply_text(
             "Siema, szefie. MLG Personal Assistant online. 💎\n\n"
-            "Pisz normalnie, a ja ogarnę.\n"
-            "/reset czyści rozmowę\n"
-            "/model pokazuje, na jakim mózgu jadę"
+            "Pisz normalnie, a ja ogarnę: przypomnienia, listy, pogodę, kursy walut, obliczenia. "
+            "Uczę się też Ciebie, więc im więcej gadamy, tym lepiej Cię znam.\n\n"
+            "/pamiec – co o Tobie wiem\n"
+            "/zapamietaj <tekst> – każ mi coś zapamiętać\n"
+            "/zapomnij <numer> – usuń coś z pamięci\n"
+            "/przypomnienia – zaplanowane przypomnienia\n"
+            "/reset – czyści rozmowę (pamięć zostaje)\n"
+            "/model – na jakim mózgu jadę"
         )
 
     async def reset(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not self._allowed(update):
             return await self._deny(update)
-        self.history.pop(update.effective_chat.id, None)
-        await update.message.reply_text("Czysta karta, szefie. Zaczynamy od nowa.")
+        self.memory.clear_history(update.effective_user.id)
+        await update.message.reply_text("Czysta karta, szefie. Rozmowa wyczyszczona, ale to, co o Tobie wiem, zostaje.")
 
     async def model(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not self._allowed(update):
             return await self._deny(update)
         await update.message.reply_text(f"Mózg: {self.brain.name}")
 
+    async def pamiec(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._allowed(update):
+            return await self._deny(update)
+        facts = self.memory.facts(update.effective_user.id)
+        if not facts:
+            await update.message.reply_text("Jeszcze nic o Tobie nie wiem, szefie. Opowiadaj.")
+            return
+        lines = [f"#{f.id} {f.text}" for f in facts]
+        await self._send(update, "Co o Tobie wiem:\n" + "\n".join(lines) + "\n\nUsuwanie: /zapomnij <numer>")
+
+    async def zapamietaj(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._allowed(update):
+            return await self._deny(update)
+        text = " ".join(context.args or []).strip()
+        if not text:
+            await update.message.reply_text("Co mam zapamiętać? Np. /zapamietaj lubię pizzę hawajską")
+            return
+        fact = self.memory.add_fact(update.effective_user.id, text)
+        await update.message.reply_text(f"Zapamiętane (#{fact.id}).")
+
+    async def zapomnij(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._allowed(update):
+            return await self._deny(update)
+        arg = (context.args or [""])[0].lstrip("#")
+        if not arg.isdigit():
+            await update.message.reply_text("Podaj numer z /pamiec, np. /zapomnij 3")
+            return
+        ok = self.memory.forget_fact(update.effective_user.id, int(arg))
+        await update.message.reply_text("Zapomniane, szefie. 🫡" if ok else f"Nie mam w pamięci #{arg}.")
+
+    async def przypomnienia(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._allowed(update):
+            return await self._deny(update)
+        items = self.memory.pending_reminders(update.effective_user.id)
+        if not items:
+            await update.message.reply_text("Nie masz zaplanowanych przypomnień.")
+            return
+        lines = [f"#{r.id} {r.due_at:%d.%m %H:%M}: {r.text}" for r in items]
+        await self._send(update, "Zaplanowane:\n" + "\n".join(lines))
+
+    # --- zwykłe wiadomości ---
+
     async def message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not self._allowed(update):
             return await self._deny(update)
 
+        user_id = update.effective_user.id
         chat_id = update.effective_chat.id
-        text = update.message.text
-        history = self.history[chat_id]
+        toolbox = Toolbox(self.memory, self.http, self.config.default_city, user_id, chat_id)
 
-        await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
-        messages: list[Message] = [{"role": "system", "content": system_prompt()}, *history, {"role": "user", "content": text}]
-
-        try:
-            answer = await self.brain.chat(messages)
-        except BrainError as e:
-            log.error("Błąd mózgu: %s", e)
-            await update.message.reply_text(f"⚠️ {e}")
-            return
-
-        history.append({"role": "user", "content": text})
-        history.append({"role": "assistant", "content": answer})
-
-        for i in range(0, len(answer), TELEGRAM_LIMIT):
-            await update.message.reply_text(answer[i : i + TELEGRAM_LIMIT])
+        # Jedna wiadomość na raz na szefa, żeby historia się nie pomieszała.
+        lock = self._locks.setdefault(user_id, asyncio.Lock())
+        async with lock:
+            await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
+            try:
+                answer = await respond(
+                    self.brain, self.memory, toolbox, user_id, update.message.text, self.config.history_limit
+                )
+            except BrainError as e:
+                log.error("Błąd mózgu: %s", e)
+                await update.message.reply_text(f"⚠️ {e}")
+                return
+        await self._send(update, answer)
 
 
 def build_app(config: Config) -> Application:
     brain = OllamaBrain(config.ollama_url, config.ollama_model, config.ollama_num_ctx)
-    bot = MLGBot(config, brain)
+    memory = Memory(config.data_dir / "mlg.db")
+    http = httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "MLG-Personal-Assistant"})
+    bot = MLGBot(config, brain, memory, http)
+
+    async def on_start(app: Application) -> None:
+        app.create_task(reminder_loop(app, memory))
 
     async def on_shutdown(app: Application) -> None:
         await brain.close()
+        await http.aclose()
+        memory.close()
 
-    app = ApplicationBuilder().token(config.telegram_token).post_shutdown(on_shutdown).build()
+    app = ApplicationBuilder().token(config.telegram_token).post_init(on_start).post_shutdown(on_shutdown).build()
     app.add_handler(CommandHandler("start", bot.start))
     app.add_handler(CommandHandler("reset", bot.reset))
     app.add_handler(CommandHandler("model", bot.model))
+    app.add_handler(CommandHandler("pamiec", bot.pamiec))
+    app.add_handler(CommandHandler("zapamietaj", bot.zapamietaj))
+    app.add_handler(CommandHandler("zapomnij", bot.zapomnij))
+    app.add_handler(CommandHandler("przypomnienia", bot.przypomnienia))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot.message))
     return app
 
@@ -104,5 +173,5 @@ def main() -> None:
     if not config.allowed_user_ids:
         log.warning("ALLOWED_USER_IDS jest puste: MLG nikomu nie odpowie. Napisz do bota, a poda Ci Twoje ID.")
 
-    log.info("MLG startuje. Mózg: Ollama · %s @ %s", config.ollama_model, config.ollama_url)
+    log.info("MLG Personal Assistant startuje. Mózg: Ollama · %s @ %s", config.ollama_model, config.ollama_url)
     build_app(config).run_polling(allowed_updates=Update.ALL_TYPES)
