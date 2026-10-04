@@ -1,6 +1,25 @@
-# 🤖 Plan Jarvis
+# 💎 Plan MLG Personal Assistant
 
-Osobisty asystent AI w stylu Jarvisa z Iron Mana: połączony z Telegramem, działający na Windowsie, z mózgiem na **Ollamie** (lokalnie, za darmo).
+Osobisty asystent AI w klimacie Jarvisa z Iron Mana: połączony z Telegramem, działający na Windowsie, z mózgiem na **Ollamie** (lokalnie, za darmo), z własnym HUD-em na pulpit.
+
+---
+
+## 📍 Gdzie jesteśmy
+
+| Etap | Co | Status |
+|---|---|---|
+| 0 | Przygotowanie (token bota, Python, ffmpeg) | ⏳ **Twoja kolej** |
+| 1 | MVP: MLG na Telegramie z Ollamą | ✅ kod gotowy |
+| 2 | Pamięć i uczenie się Ciebie | ✅ kod gotowy (nawyki w Etapie 7) |
+| 3 | Głos (głosówki w Telegramie) | 🔜 |
+| 4 | Narzędzia: przypomnienia, listy, pogoda, waluty, kalkulator | ✅ kod gotowy |
+| 5 | Poranny brief | ✅ kod gotowy |
+| 6 | HUD na pulpit (turkusowe koło + orbity) | 🎨 prototyp wyglądu gotowy |
+| 7 | Sterowanie Windowsem + Twoje apki na orbitach + nawyki | 🔜 |
+| 8 | Claude Code: odpalanie projektów + tryb `/madry` | 🔜 |
+| 9 | Bajery: wake word, kalendarz, smart home, serwer 24/7 | 🔜 |
+
+✅ = napisane i przetestowane automatycznie (na udawanej Ollamie). Pierwszy test „na żywo” robisz Ty po Etapie 0.
 
 ---
 
@@ -9,15 +28,16 @@ Osobisty asystent AI w stylu Jarvisa z Iron Mana: połączony z Telegramem, dzia
 | Element | Rozwiązanie | Koszt |
 |---|---|---|
 | 🧠 Mózg | **Ollama + `qwen2.5:7b`** lokalnie na Twoim PC | **0 zł** |
-| 🧠+ Mózg „na trudne sprawy” (opcjonalnie) | Claude **Haiku 4.5** ($1 / $5 za 1 mln tokenów), odpalany tylko na żądanie komendą `/madry` | 0–10 zł/mies. |
+| ✨ Mózg „na trudne sprawy” (opcjonalnie) | Claude **Haiku 4.5** ($1 / $5 za 1 mln tokenów), tylko na żądanie komendą `/madry` | 0–10 zł/mies. |
 | 🎙️ Słuch | Whisper lokalnie (`faster-whisper`) | 0 zł |
 | 🔊 Głos | Piper TTS lokalnie | 0 zł |
-| 💬 Interfejs | Telegram Bot API | 0 zł |
-| 🖥️ Hosting | Twój komputer z Windowsem | 0 zł |
+| 💬 Interfejs | Telegram Bot API + HUD na pulpicie | 0 zł |
+| 🌤️ Pogoda / 💱 waluty | Open-Meteo / NBP | 0 zł |
+| 🖥️ Hosting | Twój komputer z Windowsem | 0 zł (+ prąd) |
 
-**Łącznie: 0 zł miesięcznie.** Jeśli włączysz Claude jako opcję, to kilka złotych, i to tylko wtedy, gdy go użyjesz.
+**Łącznie: 0 zł miesięcznie.**
 
-> ⚠️ API Claude to osobny rachunek, niezależny od subskrypcji Claude Pro/Max. Jest całkowicie opcjonalne, bo Jarvis działa w pełni na samej Ollamie.
+> ⚠️ API Claude to osobny rachunek, niezależny od subskrypcji Claude Pro/Max. Całkowicie opcjonalne.
 
 ### Ollama vs Claude: uczciwie
 
@@ -34,102 +54,138 @@ Osobisty asystent AI w stylu Jarvisa z Iron Mana: połączony z Telegramem, dzia
 ## 🏗️ Architektura
 
 ```
-Ty (Telegram: tekst / głosówka)
+📱 Ty (Telegram: tekst / głosówka, z dowolnego miejsca)
         │
         ▼
-  Bot w Pythonie (na Twoim PC z Windowsem)
-   ├─ głosówka → ffmpeg → Whisper → tekst
-   ├─ tekst + pamięć + narzędzia → MÓZG
+☁️ Serwery Telegrama
+        │
+        ▼
+🖥️ MLG na Twoim PC z Windowsem
+   ├─ głosówka → ffmpeg → Whisper → tekst          (Etap 3)
+   ├─ agent: tekst + pamięć + narzędzia → MÓZG
    │     ├─ domyślnie: Ollama (qwen2.5:7b) @ localhost:11434
-   │     └─ /madry:    Claude Haiku (opcjonalnie)
-   ├─ odpowiedź → tekst (+ opcjonalnie Piper → głosówka)
-   └─ SQLite: pamięć, notatki, przypomnienia
+   │     └─ /madry:    Claude (opcjonalnie)          (Etap 8)
+   ├─ narzędzia: przypomnienia, listy, pogoda, waluty, kalkulator
+   ├─ pętla w tle: przypomnienia + poranny brief
+   ├─ HUD na pulpicie (przeglądarka / okno)          (Etap 6)
+   └─ SQLite (data/mlg.db): pamięć, rozmowy, listy, przypomnienia
 ```
 
-Mózg jest **wymienny**: jedna zmienna w `.env` (`BRAIN=ollama` albo `BRAIN=claude`), a kod reszty się nie zmienia. W przyszłości można podmienić model w Ollamie (np. na nowszego Qwena albo polskiego **Bielika**) bez ruszania kodu.
+- **Działa z telefonu z każdego miejsca** (LTE, cudze WiFi), bez grzebania w routerze.
+- **Komp musi być włączony.** Jak śpi, MLG też śpi (wiadomości poczekają). Serwer 24/7 to Etap 9.
+- **Mózg jest wymienny**, a kod reszty się nie zmienia.
 
 ---
 
-## 📋 Plan działania
+## 📋 Etapy
 
-### Etap 0: Przygotowanie (~20 min, 0 zł)
+### Etap 0: Przygotowanie (~20 min, 0 zł) ⏳ TWOJA KOLEJ
 
-1. ✅ **Ollama**: masz zainstalowaną.
-2. ✅ **Model `qwen2.5:7b`**: masz pobrany. Sprawdzenie: `ollama list` w PowerShellu.
-3. **Bot Telegram:** w Telegramie napisz do **@BotFather**, wpisz `/newbot` i zapisz **token bota**.
-4. **Twoje Telegram ID:** napisz do **@userinfobot** i zapisz swoje ID (do whitelisty).
-5. **Python na Windowsie:** Python 3.11+ z python.org. Przy instalacji **zaznacz „Add Python to PATH”**.
-6. **ffmpeg** (do głosówek z Telegrama): `winget install ffmpeg`.
-7. *(Opcjonalnie)* **Klucz API Claude**: console.anthropic.com, doładuj 5 $, **ustaw limit wydatków**.
+1. ✅ **Ollama**: masz.
+2. ✅ **Model `qwen2.5:7b`**: masz (sprawdzenie: `ollama list`).
+3. **Bot Telegram:** napisz do **@BotFather**, wpisz `/newbot` i zapisz **token**.
+4. **Python 3.11+** z python.org. Przy instalacji **zaznacz „Add Python to PATH”**.
+5. **Pobierz repo**, skopiuj `.env.example` jako `.env`, wklej token, odpal `start_mlg.bat`.
+6. Napisz do bota. Poda Ci Twoje **Telegram ID**, które wpisujesz w `.env` (`ALLOWED_USER_IDS`) i restartujesz.
+7. *(Na Etap 3)* **ffmpeg**: `winget install ffmpeg`.
+
+Szczegóły krok po kroku: [`README.md`](README.md).
 
 > 🔐 Tokenów i kluczy nigdy nikomu nie wysyłaj i nie wrzucaj do repo. Trzymamy je tylko w pliku `.env`.
 
-### Etap 1: Jarvis MVP: tekst w Telegramie (1 wieczór)
+### Etap 1: MVP na Telegramie ✅
 
-- Bot odbiera wiadomości, wysyła je do Ollamy (`qwen2.5:7b`) i odpisuje.
-- Osobowość Jarvisa w system prompcie: lekko sarkastyczny brytyjski lokaj, zwraca się „sir” 😏
-- 🇵🇱 **Wymuszony polski**: twarda instrukcja w system prompcie „odpowiadaj ZAWSZE po polsku”, bo Qwen lubi uciekać w angielski/chiński.
-- ⚙️ **Większy kontekst**: Ollama domyślnie ma małe okno kontekstu, więc ustawiamy `num_ctx` na ~8192, żeby Jarvis nie gubił wątku.
-- 🔒 **Whitelist**: bot odpowiada **tylko na Twoje Telegram ID**.
-- Historia ograniczona do ostatnich ~10–15 wiadomości (mały model, więc krótszy kontekst = szybciej i mądrzej).
-- Komendy: `/start`, `/reset` (czyści rozmowę), `/model` (pokazuje aktualny mózg).
+- Bot odbiera wiadomości, przekazuje je do Ollamy (`qwen2.5:7b`) i odpisuje.
+- Osobowość MLG: ziomek z klasą, mówi „szefie”, krótko i konkretnie.
+- 🇵🇱 **Wymuszony polski** w system prompcie.
+- ⚙️ `num_ctx` = 8192, żeby nie gubił wątku.
+- 🔒 **Whitelist**: odpowiada tylko na Twoje ID, a obcym pokazuje ich ID (tak zdobywasz swoje).
+- `start_mlg.bat`: odpalanie jednym kliknięciem, sam instaluje biblioteki.
 
-### Etap 2: Pamięć (1 wieczór)
+### Etap 2: Pamięć i uczenie się Ciebie ✅
 
-- Baza **SQLite** z faktami o Tobie („lubi X”, „pracuje w Y”) i notatkami.
-- Starsze rozmowy zamieniane na krótkie **podsumowanie**, bo mały model gorzej radzi sobie z długą historią.
-- Do promptu wstrzykujemy tylko istotne fakty, nie całą bazę.
+- Baza **SQLite** w `data/mlg.db`. Przetrwa restart.
+- 🧠 **Sam wyłapuje fakty z rozmów** (narzędzie „zapamiętaj”): imię, ludzie, ulubione rzeczy, praca, nawyki.
+- Fakty trafiają do każdej rozmowy, więc MLG zna Cię coraz lepiej.
+- Historia rozmowy też jest zapisywana (ostatnie ~20 wiadomości).
+- `/pamiec`, `/zapamietaj`, `/zapomnij`: pełna kontrola nad tym, co wie.
+- `/reset` czyści tylko rozmowę, a wiedza o Tobie zostaje.
+- 🔜 Nawyki (co odpalasz i kiedy) dojdą w Etapie 7, razem ze sterowaniem Windowsem.
 
-### Etap 3: Głos (1–2 wieczory)
+> Sam model się nie zmienia. MLG uczy się **Ciebie** dzięki pamięci, a nie robi się ogólnie mądrzejszy.
 
-- Wysyłasz głosówkę w Telegramie, ffmpeg i Whisper robią z niej tekst, a Jarvis odpowiada.
-- Opcjonalnie odpowiedź głosówką przez **Piper TTS** (polskie głosy, binarki na Windowsa).
-- `/glos on` / `/glos off` przełącza tryb odpowiedzi.
-- ⚠️ Whisper i Ollama dzielą kartę graficzną. Na start Whisper `base`/`small` na **CPU**, żeby nie zabierał VRAM Qwenowi.
+### Etap 3: Głos 🔜
 
-### Etap 4: Narzędzia: Jarvis coś robi (po kawałku)
+- Wysyłasz głosówkę w Telegramie, ffmpeg i Whisper robią z niej tekst, a MLG odpowiada.
+- Opcjonalnie odpowiedź głosówką przez **Piper TTS** (polskie głosy).
+- `/glos on` / `/glos off`.
+- Whisper `base`/`small` na **CPU**, żeby nie zabierał VRAM Qwenowi.
 
-Qwen 2.5 obsługuje **tool calling** w Ollamie, więc Jarvis sam zdecyduje, kiedy użyć narzędzia:
+### Etap 4: Narzędzia ✅
 
-- ⏰ **Przypomnienia**: „przypomnij mi jutro o 9 o dentyście” (APScheduler i SQLite).
-- 🌤️ **Pogoda**: Open-Meteo (darmowe, bez klucza).
-- 📝 **Notatki i listy**: zakupy, TODO.
-- 💱 **Waluty**: darmowe API NBP.
-- 🧮 **Obliczenia, data i godzina**: liczymy w Pythonie, nie „na oko” modelu.
-- 🔎 **Wyszukiwanie w necie**: przez darmowe DuckDuckGo albo przez Claude na żądanie.
+Qwen sam decyduje, kiedy użyć narzędzia (tool calling):
 
-> 💡 Mały model najlepiej działa z **niewielką liczbą prostych narzędzi** o jasnych opisach. Dodajemy je po jednym i testujemy.
+- ⏰ **Przypomnienia**: „przypomnij mi jutro o 9 o dentyście”, „za 20 minut wyjmij pizzę”. Wysyłane w tle, przetrwają restart.
+- 📝 **Listy**: zakupy, TODO, filmy (dodaj, pokaż, usuń, wyczyść).
+- 🌤️ **Pogoda**: Open-Meteo, teraz + dziś + jutro.
+- 💱 **Waluty**: kurs średni NBP.
+- 🧮 **Kalkulator**: bezpieczny, nie liczy „na oko”.
 
-### Etap 5: Jarvis proaktywny
+### Etap 5: Poranny brief ✅
 
-- ☀️ Codzienny **poranny brief** na Telegramie: pogoda i przypomnienia na dziś.
-- Sam się odzywa, gdy zbliża się coś zaplanowanego.
+- Codziennie o `BRIEF_TIME` (np. 07:30): pogoda, przypomnienia na dziś, listy.
+- Jak komp był wyłączony rano, brief przyjdzie po włączeniu (raz dziennie).
+- `/brief` daje brief od razu.
+- 🔜 Proaktywne podpowiedzi („szefie, 20:00, odpalić Discorda?”) w Etapie 7.
 
-### Etap 6: Bajery na później (opcjonalnie)
+### Etap 6: HUD na pulpit 🎨
 
-- 🧠 **Tryb hybrydowy**: `/madry` przekazuje trudne pytanie do Claude.
-- 💻 **Sterowanie Windowsem**: „odpal Spotify”, „wycisz kompa”, „zablokuj ekran”, „zrób screenshota” (tylko z Twojego ID i z potwierdzeniem dla ryzykownych akcji).
+Prototyp wyglądu jest w [`design/hud-prototyp.dc.html`](design/hud-prototyp.dc.html):
+
+- 🌊 Bardzo ciemny motyw z **turkusem i morską zielenią**.
+- ⭕ **Koło jak w Jarvisie**: trzy kręcące się pierścienie i pulsujący rdzeń z napisem **MLG**.
+- 🪐 **Twoje rzeczy z kompa latają wokół** na orbitach (apki, foldery, narzędzia).
+- ⚡ **Widać, gdzie wchodzi MLG**: przy „odpal spotify” z koła wystrzeliwuje promień do tej rzeczy, a ona się rozświetla.
+- 💬 Panel rozmowy zsynchronizowany z Telegramem, status systemu, zasoby PC, ostatnie akcje.
+
+Do zrobienia: prawdziwa wersja, czyli lokalna strona (albo okno pełnoekranowe) podpięta pod MLG na żywo.
+
+### Etap 7: Sterowanie Windowsem + nawyki 🔜
+
+- 💻 „Odpal Spotify”, „otwórz Pobrane”, „wycisz kompa”, „zablokuj ekran”, „zrób screenshota”.
+- 🪐 Skan menu Start, pulpitu i ostatnich folderów, żeby na orbitach HUD-a latały **Twoje prawdziwe** apki i foldery.
+- 📈 **Nawyki**: MLG widzi, co i kiedy odpalasz. Częste rzeczy lecą bliżej środka, a on sam podpowiada.
+- 🔒 Tylko z Twojego ID, a ryzykowne akcje z potwierdzeniem (przyciski Tak/Nie w Telegramie).
+
+### Etap 8: Claude Code + tryb `/madry` 🔜
+
+- 📂 „Odpal projekt X w Claude” otwiera terminal w folderze projektu z Claude Code.
+- 📱 Zadanie z telefonu: „niech Claude dopisze Y do projektu X”. MLG odpala `claude -p "..."` w tle i odsyła podsumowanie na Telegrama.
+- 🪐 Projekty jako kulki na orbicie HUD-a.
+- ✨ `/madry`: trudne pytanie idzie do Claude zamiast Qwena.
+- ⚠️ Wymaga subskrypcji Claude (Pro/Max) albo API. Zawsze z potwierdzeniem przed zmianami w kodzie.
+
+### Etap 9: Bajery 🔜
+
+- 🎤 Wake word „MLG” na mikrofonie w pokoju.
 - 📅 Google Calendar i Gmail.
 - 🏠 Smart home (Home Assistant).
-- 🎤 Wake word „Jarvis” na mikrofonie w pokoju.
-- 🔵 HUD z reaktorem łukowym w przeglądarce.
+- 🕐 **Serwer 24/7**, żeby MLG działał przy wyłączonym kompie:
+  - Oracle Cloud Free Tier (0 zł, wolniejsza Ollama na CPU),
+  - tani VPS + Claude Haiku (~20–40 zł/mies., szybki i bystry),
+  - Raspberry Pi w domu (jednorazowo kilkaset zł, kilka watów),
+  - hybryda: komp włączony = Ollama, wyłączony = Claude.
+- 👥 Dostęp dla innych osób (każda z osobną pamięcią).
 - 🔄 Test innych modeli: nowszy Qwen, polski Bielik.
 
 ---
 
 ## 🪟 Windows: rzeczy do ogarnięcia
 
-- **Ollama** na Windowsie sama chodzi w tle (ikonka w trayu) i startuje z systemem. API jest pod `http://localhost:11434`.
-- **Środowisko wirtualne** (PowerShell):
-  ```powershell
-  python -m venv venv
-  .\venv\Scripts\Activate.ps1
-  pip install -r requirements.txt
-  ```
-  Jeśli PowerShell blokuje skrypt: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
-- **Autostart Jarvisa**: Harmonogram zadań albo skrót `.bat` w `shell:startup`.
-- **Działanie w tle**: `pythonw.exe` (bez okna konsoli).
-- **Uśpienie komputera**: jak komp śpi, Jarvis też śpi. Do pracy 24/7 wyłącz usypianie w ustawieniach zasilania.
+- **Ollama** chodzi sama w tle (ikonka w trayu) i startuje z systemem.
+- **`start_mlg.bat`** sam tworzy środowisko Pythona i instaluje biblioteki.
+- **Autostart MLG**: skrót do `start_mlg.bat` w folderze `shell:startup` (Win+R → `shell:startup`).
+- **Uśpienie komputera**: do pracy 24/7 wyłącz usypianie w ustawieniach zasilania.
 
 ---
 
@@ -137,7 +193,7 @@ Qwen 2.5 obsługuje **tool calling** w Ollamie, więc Jarvis sam zdecyduje, kied
 
 1. Domyślnie **Ollama**, czyli 0 zł.
 2. Claude **tylko na żądanie**, z **limitem wydatków** w konsoli.
-3. Krótka historia i podsumowania, żeby mały model był szybszy i mądrzejszy.
+3. Krótka historia rozmowy, żeby mały model był szybszy i mądrzejszy.
 4. **Whitelist**, czyli tylko Twoje Telegram ID.
 5. Whisper na CPU, Ollama na GPU, żeby się nie gryzły.
 
@@ -147,34 +203,23 @@ Qwen 2.5 obsługuje **tool calling** w Ollamie, więc Jarvis sam zdecyduje, kied
 
 ```
 Jarvis/
-├── jarvis/
-│   ├── bot.py            # Telegram (python-telegram-bot)
-│   ├── brain/
-│   │   ├── base.py       # wspólny interfejs mózgu
-│   │   ├── ollama.py     # Ollama (qwen2.5:7b), domyślny
-│   │   └── claude.py     # Claude (opcjonalny)
-│   ├── memory.py         # SQLite + podsumowania
-│   ├── voice.py          # Whisper + Piper
-│   ├── config.py         # wczytywanie .env
-│   └── tools/            # pogoda, przypomnienia, notatki, waluty...
-├── data/                 # baza SQLite, modele głosu (poza gitem)
-├── .env                  # tokeny i ustawienia (NIGDY do gita!)
-├── .env.example          # wzór pliku .env
-├── .gitignore
-├── requirements.txt
-├── start_jarvis.bat      # odpalanie jednym kliknięciem
-└── README.md
-```
-
-Przykładowy `.env`:
-```
-TELEGRAM_TOKEN=...
-ALLOWED_USER_ID=...
-BRAIN=ollama
-OLLAMA_MODEL=qwen2.5:7b
-OLLAMA_URL=http://localhost:11434
-# opcjonalnie:
-ANTHROPIC_API_KEY=
+├── mlg/
+│   ├── bot.py            # Telegram + komendy
+│   ├── agent.py          # pętla: mózg myśli i używa narzędzi
+│   ├── brain/            # Ollama (domyślny), później Claude
+│   ├── memory.py         # SQLite: fakty, rozmowy, listy, przypomnienia
+│   ├── tools/            # pogoda, waluty, kalkulator (+ listy, przypomnienia)
+│   ├── brief.py          # poranny brief
+│   ├── reminders.py      # pętla w tle
+│   ├── persona.py        # osobowość MLG
+│   └── config.py         # ustawienia z .env
+├── design/               # prototyp HUD-a
+├── tests/                # testy automatyczne
+├── data/                 # baza MLG (poza gitem)
+├── .env.example          # wzór ustawień
+├── start_mlg.bat         # odpalanie jednym kliknięciem
+├── PLAN.md / Plan_Jarvis.pdf
+└── README.md             # instrukcja odpalenia
 ```
 
 ---
@@ -182,10 +227,13 @@ ANTHROPIC_API_KEY=
 ## ✅ Checklista postępów
 
 - [x] Ollama + `qwen2.5:7b` zainstalowane
-- [ ] Etap 0: Przygotowanie (token bota, ID, Python, ffmpeg)
-- [ ] Etap 1: MVP tekstowy w Telegramie
-- [ ] Etap 2: Pamięć
+- [ ] Etap 0: token bota, Python, `.env`, pierwszy start
+- [x] Etap 1: MVP na Telegramie (kod)
+- [x] Etap 2: Pamięć i uczenie się (kod)
 - [ ] Etap 3: Głos
-- [ ] Etap 4: Narzędzia
-- [ ] Etap 5: Poranny brief
-- [ ] Etap 6: Bajery
+- [x] Etap 4: Narzędzia (kod)
+- [x] Etap 5: Poranny brief (kod)
+- [ ] Etap 6: HUD na pulpit (prototyp ✅, wersja prawdziwa ⏳)
+- [ ] Etap 7: Sterowanie Windowsem + nawyki
+- [ ] Etap 8: Claude Code + `/madry`
+- [ ] Etap 9: Bajery

@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS reminders (
     text TEXT NOT NULL,
     sent INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS kv (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 CREATE INDEX IF NOT EXISTS idx_messages_user ON messages(user_id, id);
 CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(sent, due_at);
 """
@@ -69,6 +73,16 @@ class Memory:
 
     def close(self) -> None:
         self.db.close()
+
+    # --- proste ustawienia klucz/wartość ---
+
+    def get(self, key: str) -> str | None:
+        row = self.db.execute("SELECT value FROM kv WHERE key = ?", (key,)).fetchone()
+        return row[0] if row else None
+
+    def set(self, key: str, value: str) -> None:
+        self.db.execute("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", (key, value))
+        self.db.commit()
 
     # --- fakty ---
 

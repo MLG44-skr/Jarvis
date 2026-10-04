@@ -12,7 +12,8 @@ from mlg.agent import respond
 from mlg.brain import Brain, BrainError, OllamaBrain
 from mlg.config import Config, load_config
 from mlg.memory import Memory
-from mlg.reminders import reminder_loop
+from mlg.brief import build_brief, parse_brief_time
+from mlg.reminders import background_loop
 from mlg.tools import Toolbox
 
 log = logging.getLogger("mlg")
@@ -59,6 +60,7 @@ class MLGBot:
             "/zapamietaj <tekst> – każ mi coś zapamiętać\n"
             "/zapomnij <numer> – usuń coś z pamięci\n"
             "/przypomnienia – zaplanowane przypomnienia\n"
+            "/brief – poranny brief teraz\n"
             "/reset – czyści rozmowę (pamięć zostaje)\n"
             "/model – na jakim mózgu jadę"
         )
@@ -114,6 +116,12 @@ class MLGBot:
         lines = [f"#{r.id} {r.due_at:%d.%m %H:%M}: {r.text}" for r in items]
         await self._send(update, "Zaplanowane:\n" + "\n".join(lines))
 
+    async def brief(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._allowed(update):
+            return await self._deny(update)
+        text = await build_brief(self.memory, self.http, update.effective_user.id, self.config.default_city)
+        await self._send(update, text)
+
     # --- zwykłe wiadomości ---
 
     async def message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -145,8 +153,10 @@ def build_app(config: Config) -> Application:
     http = httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "MLG-Personal-Assistant"})
     bot = MLGBot(config, brain, memory, http)
 
+    brief_at = parse_brief_time(config.brief_time)
+
     async def on_start(app: Application) -> None:
-        app.create_task(reminder_loop(app, memory))
+        app.create_task(background_loop(app, memory, http, config.allowed_user_ids, config.default_city, brief_at))
 
     async def on_shutdown(app: Application) -> None:
         await brain.close()
@@ -161,6 +171,7 @@ def build_app(config: Config) -> Application:
     app.add_handler(CommandHandler("zapamietaj", bot.zapamietaj))
     app.add_handler(CommandHandler("zapomnij", bot.zapomnij))
     app.add_handler(CommandHandler("przypomnienia", bot.przypomnienia))
+    app.add_handler(CommandHandler("brief", bot.brief))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot.message))
     return app
 

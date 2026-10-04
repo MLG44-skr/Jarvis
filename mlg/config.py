@@ -17,6 +17,7 @@ class Config:
     history_limit: int
     data_dir: Path
     default_city: str
+    brief_time: str = ""
 
 
 def _parse_ids(raw: str) -> frozenset[int]:
@@ -47,4 +48,5 @@ def load_config() -> Config:
         history_limit=int(os.getenv("HISTORY_LIMIT", "20")),
         data_dir=Path(os.getenv("DATA_DIR", "data")),
         default_city=os.getenv("DEFAULT_CITY", "").strip(),
+        brief_time=os.getenv("BRIEF_TIME", "").strip(),
     )
