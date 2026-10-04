@@ -18,6 +18,28 @@ from mlg.reminders import background_loop
 log = logging.getLogger("mlg")
 
 TELEGRAM_LIMIT = 4096
+MAX_FACT_LEN = 300
+
+
+def import_facts(memory: Memory, user_id: int, text: str) -> tuple[int, int]:
+    """Zapisuje każdą linijkę po /import jako osobny fakt. Zwraca (nowe, już znane)."""
+    lines = text.split("\n")
+    if lines and lines[0].lstrip().startswith("/import"):
+        lines[0] = lines[0].lstrip()[len("/import"):].lstrip("@").split(" ", 1)[-1] if " " in lines[0].strip() else ""
+    known = {f.text.lower() for f in memory.facts(user_id)}
+    added = skipped = 0
+    for line in lines:
+        fact = line.strip().lstrip("-•*–·").strip()
+        if len(fact) < 3:
+            continue
+        fact = fact[:MAX_FACT_LEN]
+        if fact.lower() in known:
+            skipped += 1
+            continue
+        memory.add_fact(user_id, fact)
+        known.add(fact.lower())
+        added += 1
+    return added, skipped
 
 
 class MLGBot:
@@ -58,6 +80,7 @@ class MLGBot:
             "/pamiec – co o Tobie wiem\n"
             "/zapamietaj <tekst> – każ mi coś zapamiętać\n"
             "/zapomnij <numer> – usuń coś z pamięci\n"
+            "/import <lista> – wklej listę faktów o sobie (każdy w nowej linii)\n"
             "/przypomnienia – zaplanowane przypomnienia\n"
             "/brief – poranny brief teraz\n"
             "/reset – czyści rozmowę (pamięć zostaje)\n"
@@ -94,6 +117,20 @@ class MLGBot:
             return
         fact = self.memory.add_fact(update.effective_user.id, text)
         await update.message.reply_text(f"Zapamiętane (#{fact.id}).")
+
+    async def importuj(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._allowed(update):
+            return await self._deny(update)
+        added, skipped = import_facts(self.memory, update.effective_user.id, update.message.text or "")
+        if not added and not skipped:
+            await update.message.reply_text(
+                "Wklej po /import listę faktów, każdy w nowej linii, np.:\n/import\n- Szef ma na imię Marcel\n- Szef gra w CS2"
+            )
+            return
+        msg = f"Wchłonąłem {added} nowych faktów o Tobie, szefie. 🧠"
+        if skipped:
+            msg += f" ({skipped} już znałem.)"
+        await update.message.reply_text(msg + "\nSprawdzisz je przez /pamiec.")
 
     async def zapomnij(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not self._allowed(update):
@@ -172,6 +209,7 @@ def build_app(config: Config) -> Application:
     app.add_handler(CommandHandler("pamiec", bot.pamiec))
     app.add_handler(CommandHandler("zapamietaj", bot.zapamietaj))
     app.add_handler(CommandHandler("zapomnij", bot.zapomnij))
+    app.add_handler(CommandHandler("import", bot.importuj))
     app.add_handler(CommandHandler("przypomnienia", bot.przypomnienia))
     app.add_handler(CommandHandler("brief", bot.brief))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot.message))

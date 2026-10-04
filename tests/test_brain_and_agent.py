@@ -250,3 +250,13 @@ def test_select_tools_routes_by_message():
     assert {"dodaj_do_listy", "pokaz_liste"} <= names("dodaj mleko do listy zakupów")
     assert "otworz" in names("odpal spotify")
     assert "otworz" not in names("lubię słuchać spotify")
+
+
+def test_import_facts(memory):
+    from mlg.bot import import_facts
+
+    text = "/import\n- Szef ma na imię Marcel\n• Szef gra w CS2\n\n* Szef lubi sushi\n- ok\n- Szef ma na imię Marcel"
+    assert import_facts(memory, 1, text) == (3, 1)
+    assert [f.text for f in memory.facts(1)] == ["Szef ma na imię Marcel", "Szef gra w CS2", "Szef lubi sushi"]
+    assert import_facts(memory, 1, "/import - Szef mieszka w Krakowie") == (1, 0)
+    assert import_facts(memory, 1, "/import") == (0, 0)

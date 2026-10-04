@@ -67,6 +67,7 @@ Przy starcie MLG sam otworzy w przeglądarce **http://127.0.0.1:8044**: koło ML
 | `/pamiec` | co MLG o Tobie wie |
 | `/zapamietaj <tekst>` | każ mu coś zapamiętać |
 | `/zapomnij <numer>` | usuń fakt z pamięci (numer z `/pamiec`) |
+| `/import <lista>` | wklej wiele faktów naraz, każdy w nowej linii (np. z innego AI) |
 | `/przypomnienia` | zaplanowane przypomnienia |
 | `/brief` | poranny brief od razu |
 | `/reset` | czyści rozmowę (pamięć o Tobie zostaje) |
