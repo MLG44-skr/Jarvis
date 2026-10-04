@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>MLG HUD</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&amp;family=Unbounded:wght@500;700;900&amp;family=Space+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#010505}
+a{color:#5cf2d6}a:hover{color:#b8fff0}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinr{to{transform:rotate(-360deg)}}
+@keyframes glow{0%,100%{box-shadow:0 0 22px 2px rgba(45,226,196,.55),0 0 60px 6px rgba(20,163,139,.25),inset 0 0 18px rgba(45,226,196,.35)}50%{box-shadow:0 0 34px 6px rgba(45,226,196,.8),0 0 90px 14px rgba(20,163,139,.4),inset 0 0 26px rgba(45,226,196,.55)}}
+@keyframes drift{0%{transform:translate(0,0);opacity:.15}50%{opacity:.7}100%{transform:translate(18px,-46px);opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes beam{0%{opacity:.35}50%{opacity:1}100%{opacity:.35}}
+.logo{animation:glow 3.4s ease-in-out infinite}
+.dust{animation:drift linear infinite}
+.live{animation:blink 1.6s ease-in-out infinite}
+.beam-on{animation:beam .6s ease-in-out infinite}
+.pt{transition:transform .25s ease, box-shadow .25s ease, background .25s ease}
+.pt:hover{transform:scale(1.15)}
+.pt:focus-visible{outline:2px solid #b8fff0;outline-offset:3px}
+.min::placeholder{color:#6f8f8a}
+.min:focus{outline:none;border-color:#2de2c4;box-shadow:0 0 0 3px rgba(45,226,196,.18)}
+.mbtn:hover{background:rgba(45,226,196,.18)}
+.mbtn:focus-visible{outline:2px solid #b8fff0;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; position: relative; overflow: hidden; background: radial-gradient(ellipse at 50% 46%, #062023 0%, #03100f 42%, #010505 100%); color: #ecfffb; font-family: 'Space Grotesk', sans-serif; padding: 28px 32px; display: flex; flex-direction: column; gap: 22px">
+
+<div style="position: absolute; inset: 0; pointer-events: none">
+  <sc-for list="{{dust}}" as="d" hint-placeholder-count="40">
+    <div class="dust" style="{{d.style}}"></div>
+  </sc-for>
+</div>
+
+<header style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid rgba(45,226,196,.16); padding-bottom: 16px">
+  <div style="display: flex; align-items: center; gap: 16px">
+    <div style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #2de2c4; background: #041214; box-shadow: 0 0 14px rgba(45,226,196,.6); display: flex; align-items: center; justify-content: center; font-family: Pacifico, cursive; font-size: 14px; color: #ffffff">MLG</div>
+    <div style="font-family: Unbounded, sans-serif; font-weight: 900; font-size: 20px; letter-spacing: 5px; color: #ffffff">M.L.G.</div>
+    <div style="font-size: 13px; color: #9fc2bd; letter-spacing: 3px; padding-left: 16px; border-left: 1px solid rgba(45,226,196,.25)">PERSONAL ASSISTANT</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 28px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5cf2d6" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      <div><div style="font-family: Unbounded, sans-serif; font-size: 16px; color: #ffffff">14°C</div><div style="font-size: 12px; color: #9fc2bd">[Twoje miasto] · słonecznie</div></div>
+    </div>
+    <div style="text-align: right">
+      <div style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 24px; letter-spacing: 2px; color: #ffffff">{{time}}</div>
+      <div style="font-size: 12px; color: #9fc2bd; letter-spacing: 1px">{{date}}</div>
+    </div>
+  </div>
+</header>
+
+<main style="position: relative; flex-grow: 1; display: grid; grid-template-columns: 290px minmax(0, 1fr) 410px; gap: 28px; min-height: 0">
+
+  <section aria-label="Status systemu" style="display: flex; flex-direction: column; gap: 18px">
+    <div style="border: 1px solid rgba(45,226,196,.18); background: rgba(5,24,26,.62); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-family: Unbounded, sans-serif; font-size: 11px; letter-spacing: 3px; color: #5cf2d6">STATUS</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px"><span style="color: #b5d6d1">Mózg</span><span style="display: flex; align-items: center; gap: 8px"><span class="live" style="width: 8px; height: 8px; border-radius: 50%; background: #5ff0b0; box-shadow: 0 0 8px #5ff0b0"></span>Ollama · qwen2.5:7b</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px"><span style="color: #b5d6d1">Telegram</span><span style="display: flex; align-items: center; gap: 8px"><span class="live" style="width: 8px; height: 8px; border-radius: 50%; background: #5ff0b0; box-shadow: 0 0 8px #5ff0b0"></span>połączony</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px"><span style="color: #b5d6d1">Głos</span><span>gotowy</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px"><span style="color: #b5d6d1">Claude (/madry)</span><span style="color: #9fc2bd">wyłączony</span></div>
+    </div>
+
+    <div style="border: 1px solid rgba(45,226,196,.18); background: rgba(5,24,26,.62); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-family: Unbounded, sans-serif; font-size: 11px; letter-spacing: 3px; color: #5cf2d6">ZASOBY PC</div>
+      <sc-for list="{{stats}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #b5d6d1">{{s.label}}</span><span style="font-family: Unbounded, sans-serif; font-size: 12px">{{s.value}}</span></div>
+          <div style="height: 6px; border-radius: 3px; background: rgba(45,226,196,.1); overflow: hidden"><div style="{{s.barStyle}}"></div></div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border: 1px solid rgba(45,226,196,.18); background: rgba(5,24,26,.62); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; flex-grow: 1; min-height: 0">
+      <div style="font-family: Unbounded, sans-serif; font-size: 11px; letter-spacing: 3px; color: #5cf2d6">OSTATNIE AKCJE</div>
+      <sc-for list="{{log}}" as="l" hint-placeholder-count="3">
+        <div style="display: flex; gap: 12px; align-items: baseline; font-size: 13px"><span style="font-family: Unbounded, sans-serif; color: #14a38b; font-size: 11px">{{l.at}}</span><span>{{l.text}}</span></div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-label="Rdzeń MLG" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; min-width: 0">
+    <div style="position: relative; width: 600px; height: 600px; flex-shrink: 0">
+      <sc-for list="{{rings}}" as="r" hint-placeholder-count="3">
+        <div style="{{r.trackStyle}}"></div>
+        <div style="{{r.spinStyle}}">
+          <sc-for list="{{r.items}}" as="it" hint-placeholder-count="5">
+            <div style="{{it.beamStyle}}" class="{{it.beamClass}}"></div>
+            <div style="{{it.posStyle}}">
+              <div style="{{r.counterStyle}}">
+                <button type="button" class="pt" onClick="{{it.fire}}" aria-label="{{it.aria}}" style="{{it.dotStyle}}">
+                  <sc-if value="{{it.isApp}}" hint-placeholder-val="{{true}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{it.iconColor}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M10 9l5 3-5 3z"></path></svg>
+                  </sc-if>
+                  <sc-if value="{{it.isFolder}}" hint-placeholder-val="{{false}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{it.iconColor}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                  </sc-if>
+                  <sc-if value="{{it.isTool}}" hint-placeholder-val="{{false}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{it.iconColor}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"></path><path d="M9 12h7M9 16h5"></path></svg>
+                  </sc-if>
+                </button>
+                <div style="{{it.labelStyle}}">{{it.name}}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+
+      <div style="position: absolute; left: 50%; top: 50%; width: 236px; height: 236px; margin: -118px 0 0 -118px; border-radius: 50%; border: 2px dashed rgba(45,226,196,.4); animation: spin 24s linear infinite; pointer-events: none"></div>
+      <div style="position: absolute; left: 50%; top: 50%; width: 214px; height: 214px; margin: -107px 0 0 -107px; box-sizing: border-box; border-radius: 50%; border: 7px solid transparent; border-top-color: #2de2c4; border-bottom-color: rgba(45,226,196,.45); filter: drop-shadow(0 0 8px rgba(45,226,196,.8)); animation: spinr 9s linear infinite; pointer-events: none"></div>
+      <div style="position: absolute; left: 50%; top: 50%; width: 190px; height: 190px; margin: -95px 0 0 -95px; box-sizing: border-box; border-radius: 50%; border: 2px solid transparent; border-left-color: #b8fff0; border-right-color: rgba(184,255,240,.35); animation: spin 5s linear infinite; pointer-events: none"></div>
+      <div class="logo" style="position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; box-sizing: border-box; border-radius: 50%; border: 3px solid #2de2c4; background: radial-gradient(circle at 50% 45%, #0f3d3d 0%, #072022 55%, #041214 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+        <div style="font-family: Pacifico, cursive; font-size: 52px; line-height: 1.1; color: #ffffff; text-shadow: 0 0 8px #2de2c4, 0 0 22px #2de2c4, 0 0 44px #14a38b">MLG</div>
+        <div style="font-family: Unbounded, sans-serif; font-size: 9px; letter-spacing: 3px; color: #b8fff0">{{coreLabel}}</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-family: Unbounded, sans-serif; font-size: 12px; letter-spacing: 4px; color: #5cf2d6">{{modeLabel}}</div>
+      <div style="font-size: 19px; color: #ffffff">{{statusLine}}</div>
+      <div style="font-size: 12px; color: #9fc2bd">Kliknij cokolwiek, co lata, albo napisz np. „odpal spotify”</div>
+    </div>
+  </section>
+
+  <section aria-label="Rozmowa" style="border: 1px solid rgba(45,226,196,.18); background: rgba(5,24,26,.62); border-radius: 14px; display: flex; flex-direction: column; min-height: 0">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid rgba(45,226,196,.14)">
+      <div style="font-family: Unbounded, sans-serif; font-size: 11px; letter-spacing: 3px; color: #5cf2d6">ROZMOWA</div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9fc2bd">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9fc2bd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4 3 11l6 2 2 6 3-4 5 4z"></path></svg>
+        synchronizacja z Telegramem
+      </div>
+    </div>
+    <div style="flex-grow: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <sc-for list="{{messages}}" as="m" hint-placeholder-count="4">
+        <div style="{{m.wrapStyle}}">
+          <div style="font-size: 11px; letter-spacing: 1px; color: #9fc2bd">{{m.who}} · {{m.at}}</div>
+          <div style="{{m.bubbleStyle}}">{{m.text}}</div>
+        </div>
+      </sc-for>
+    </div>
+    <form onSubmit="{{send}}" style="display: flex; gap: 10px; padding: 14px; border-top: 1px solid rgba(45,226,196,.14)">
+      <label for="mlg-input" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Wiadomość do MLG</label>
+      <input id="mlg-input" class="min" value="{{draft}}" onChange="{{onDraft}}" placeholder="Napisz do MLG…" style="flex-grow: 1; min-width: 0; height: 46px; box-sizing: border-box; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(45,226,196,.28); background: rgba(2,8,9,.8); color: #ffffff; font-family: 'Space Grotesk', sans-serif; font-size: 15px">
+      <button type="button" class="mbtn" onClick="{{toggleMic}}" aria-label="Mów do MLG" style="width: 46px; height: 46px; border-radius: 10px; border: 1px solid rgba(45,226,196,.4); background: {{micBg}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b8fff0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+      </button>
+      <button type="submit" class="mbtn" aria-label="Wyślij" style="width: 46px; height: 46px; border-radius: 10px; border: 1px solid #2de2c4; background: rgba(45,226,196,.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </button>
+    </form>
+  </section>
+</main>
+
+<footer style="position: relative; display: flex; justify-content: space-between; font-size: 12px; color: #9fc2bd; letter-spacing: 1px">
+  <span>Wszystko lokalnie na Twoim PC · 0 zł/mies.</span>
+  <span>MLG Personal Assistant · prototyp</span>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.rings = [
+      { r: 150, secs: 46, items: [
+        { id: 'spotify', name: 'Spotify', type: 'app', keys: ['spotify'] },
+        { id: 'discord', name: 'Discord', type: 'app', keys: ['discord'] },
+        { id: 'chrome', name: 'Chrome', type: 'app', keys: ['chrome', 'przeglądark', 'przegladark', 'internet'] },
+        { id: 'steam', name: 'Steam', type: 'app', keys: ['steam'] }
+      ] },
+      { r: 222, secs: 70, rev: true, items: [
+        { id: 'vscode', name: 'VS Code', type: 'app', keys: ['vs code', 'vscode', 'kod'] },
+        { id: 'obs', name: 'OBS', type: 'app', keys: ['obs', 'nagryw'] },
+        { id: 'pobrane', name: 'Pobrane', type: 'folder', keys: ['pobran'] },
+        { id: 'dokumenty', name: 'Dokumenty', type: 'folder', keys: ['dokument'] },
+        { id: 'zdjecia', name: 'Zdjęcia', type: 'folder', keys: ['zdję', 'zdje', 'foto'] }
+      ] },
+      { r: 290, secs: 100, items: [
+        { id: 'pulpit', name: 'Pulpit', type: 'folder', keys: ['pulpit'] },
+        { id: 'muzyka', name: 'Muzyka', type: 'folder', keys: ['muzyk'] },
+        { id: 'filmy', name: 'Filmy', type: 'folder', keys: ['film'] },
+        { id: 'notatki', name: 'Notatki', type: 'tool', keys: ['notat'] },
+        { id: 'kalendarz', name: 'Kalendarz', type: 'tool', keys: ['kalendarz'] },
+        { id: 'ustawienia', name: 'Ustawienia', type: 'tool', keys: ['ustawien'] }
+      ] }
+    ];
+    this.state = {
+      now: new Date(),
+      draft: '',
+      listening: false,
+      active: null,
+      log: [
+        { at: '08:05', text: 'Przypomnienie: trening 17:30' },
+        { at: '08:07', text: 'Zakupy: mleko, chleb' }
+      ],
+      messages: [
+        { me: false, at: '08:02', text: 'Siema, szefie. 14°C i słońce. O 9:00 dentysta, więc milioner wstaje teraz, nie za 20 minut.' },
+        { me: true, at: '08:05', text: 'Przypomnij mi o 17:30 o treningu' },
+        { me: false, at: '08:05', text: 'Ogarnięte. 17:30 trening. Forma milionera sama się nie zrobi.' },
+        { me: true, at: '08:07', text: 'Dodaj mleko i chleb do zakupów' },
+        { me: false, at: '08:07', text: 'Dodane. Przypomnę o 20:00.' }
+      ]
+    };
+  }
+  componentDidMount() {
+    this.timer = setInterval(() => this.setState({ now: new Date() }), 1000);
+  }
+  componentWillUnmount() {
+    clearInterval(this.timer);
+    clearTimeout(this.reply);
+    clearTimeout(this.calm);
+  }
+  stamp() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  find(text) {
+    const t = text.toLowerCase();
+    for (const ring of this.rings) {
+      for (const it of ring.items) {
+        if (it.keys.some((k) => t.includes(k))) return it;
+      }
+    }
+    return null;
+  }
+  verb(it) {
+    if (it.type === 'folder') return 'Otwieram folder ' + it.name;
+    if (it.type === 'tool') return 'Otwieram ' + it.name;
+    return 'Odpalam ' + it.name;
+  }
+  launch(it, fromChat) {
+    const at = this.stamp();
+    clearTimeout(this.calm);
+    const msgs = fromChat ? this.state.messages : this.state.messages.concat([{ me: true, at, text: (it.type === 'app' ? 'odpal ' : 'otwórz ') + it.name.toLowerCase() }]);
+    this.setState({
+      active: it.id,
+      messages: msgs.concat([{ me: false, at, text: this.verb(it) + ', szefie.' }]),
+      log: [{ at, text: this.verb(it) }].concat(this.state.log).slice(0, 6)
+    });
+    this.calm = setTimeout(() => this.setState({ active: null }), 4200);
+  }
+  renderVals() {
+    const now = this.state.now;
+    const pad = (n) => String(n).padStart(2, '0');
+    const days = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
+    const months = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
+    const active = this.state.active;
+    const activeItem = active ? this.rings.flatMap((r) => r.items).find((i) => i.id === active) : null;
+
+    const rings = this.rings.map((ring, ri) => {
+      const r = ring.r;
+      const anim = (ring.rev ? 'spinr ' : 'spin ') + ring.secs + 's linear infinite';
+      const counter = (ring.rev ? 'spin ' : 'spinr ') + ring.secs + 's linear infinite';
+      const n = ring.items.length;
+      return {
+        trackStyle: 'position: absolute; left: ' + (300 - r) + 'px; top: ' + (300 - r) + 'px; width: ' + (2 * r) + 'px; height: ' + (2 * r) + 'px; box-sizing: border-box; border-radius: 50%; border: 1px ' + (ri === 1 ? 'dashed' : 'solid') + ' rgba(45,226,196,' + (0.16 - ri * 0.03) + ')',
+        spinStyle: 'position: absolute; left: ' + (300 - r) + 'px; top: ' + (300 - r) + 'px; width: ' + (2 * r) + 'px; height: ' + (2 * r) + 'px; animation: ' + anim,
+        counterStyle: 'display: flex; flex-direction: column; align-items: center; gap: 5px; animation: ' + counter,
+        items: ring.items.map((it, i) => {
+          const deg = (360 / n) * i + ri * 23;
+          const rad = (deg * Math.PI) / 180;
+          const x = r + r * Math.cos(rad);
+          const y = r + r * Math.sin(rad);
+          const on = it.id === active;
+          const dim = active && !on;
+          return {
+            name: it.name,
+            aria: this.verb(it),
+            isApp: it.type === 'app',
+            isFolder: it.type === 'folder',
+            isTool: it.type === 'tool',
+            iconColor: on ? '#ffffff' : '#b8fff0',
+            fire: () => this.launch(it, false),
+            beamClass: on ? 'beam-on' : '',
+            beamStyle: 'position: absolute; left: ' + r + 'px; top: ' + r + 'px; width: ' + r + 'px; height: 2px; margin-top: -1px; transform-origin: 0 50%; transform: rotate(' + deg + 'deg); background: linear-gradient(90deg, rgba(45,226,196,.0) 20%, #2de2c4 70%, #ffffff); box-shadow: 0 0 10px #2de2c4, 0 0 20px #14a38b; pointer-events: none; opacity: ' + (on ? 1 : 0) + '; transition: opacity .3s',
+            posStyle: 'position: absolute; left: ' + x + 'px; top: ' + y + 'px; transform: translate(-50%, -50%); opacity: ' + (dim ? 0.35 : 1) + '; transition: opacity .3s',
+            dotStyle: 'width: ' + (on ? 50 : 40) + 'px; height: ' + (on ? 50 : 40) + 'px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; border: 1px solid ' + (on ? '#ffffff' : 'rgba(45,226,196,.55)') + '; background: ' + (on ? 'radial-gradient(circle, #2de2c4, #0b6f62)' : 'rgba(4,20,22,.9)') + '; box-shadow: ' + (on ? '0 0 24px 6px rgba(45,226,196,.85), 0 0 60px rgba(20,163,139,.6)' : '0 0 10px rgba(45,226,196,.35)'),
+            labelStyle: 'font-size: 11px; letter-spacing: .5px; white-space: nowrap; color: ' + (on ? '#ffffff' : '#b5d6d1') + '; font-weight: ' + (on ? 600 : 400) + '; text-shadow: ' + (on ? '0 0 8px #2de2c4' : 'none')
+          };
+        })
+      };
+    });
+
+    const dust = Array.from({ length: 40 }, (_, i) => {
+      const x = (i * 97) % 1440;
+      const y = 120 + ((i * 173) % 760);
+      const s = 1 + (i % 3);
+      const c = i % 2 ? '#2de2c4' : '#14a38b';
+      return { style: 'position: absolute; left: ' + x + 'px; top: ' + y + 'px; width: ' + s + 'px; height: ' + s + 'px; border-radius: 50%; background: ' + c + '; box-shadow: 0 0 6px ' + c + '; animation-duration: ' + (6 + (i % 7)) + 's; animation-delay: -' + (i % 9) + 's' };
+    });
+
+    const stats = [
+      { label: 'CPU', pct: active ? 47 : 23 },
+      { label: 'RAM', pct: 58 },
+      { label: 'GPU (Ollama)', pct: 41 }
+    ].map((s) => ({
+      label: s.label,
+      value: s.pct + '%',
+      barStyle: 'height: 100%; width: ' + s.pct + '%; background: linear-gradient(90deg, #14a38b, #2de2c4); box-shadow: 0 0 8px rgba(45,226,196,.7); border-radius: 3px; transition: width .4s'
+    }));
+
+    const messages = this.state.messages.map((m) => ({
+      who: m.me ? 'TY' : 'MLG',
+      at: m.at,
+      text: m.text,
+      wrapStyle: 'display: flex; flex-direction: column; gap: 4px; align-items: ' + (m.me ? 'flex-end' : 'flex-start'),
+      bubbleStyle: 'max-width: 88%; padding: 10px 13px; border-radius: 12px; font-size: 14px; line-height: 1.45; ' + (m.me ? 'background: rgba(20,163,139,.2); border: 1px solid rgba(20,163,139,.45); color: #ffffff' : 'background: rgba(2,8,9,.85); border: 1px solid rgba(45,226,196,.32); color: #ecfffb')
+    }));
+
+    return {
+      time: pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds()),
+      date: days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear(),
+      rings,
+      dust,
+      stats,
+      messages,
+      log: this.state.log,
+      draft: this.state.draft,
+      coreLabel: activeItem ? 'WCHODZĘ' : 'ONLINE',
+      modeLabel: activeItem ? 'AKCJA' : (this.state.listening ? 'NASŁUCHUJĘ' : 'GOTOWY'),
+      statusLine: activeItem ? this.verb(activeItem) + '…' : (this.state.listening ? 'Słucham, szefie.' : 'Do usług, szefie.'),
+      micBg: this.state.listening ? 'rgba(45,226,196,.28)' : 'rgba(45,226,196,.06)',
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      toggleMic: () => this.setState({ listening: !this.state.listening }),
+      send: (e) => {
+        e.preventDefault();
+        const text = this.state.draft.trim();
+        if (!text) return;
+        const at = this.stamp();
+        const hit = this.find(text);
+        this.setState({ draft: '', listening: false, messages: this.state.messages.concat([{ me: true, at, text }]) });
+        clearTimeout(this.reply);
+        this.reply = setTimeout(() => {
+          if (hit) {
+            this.launch(hit, true);
+          } else {
+            this.setState({ messages: this.state.messages.concat([{ me: false, at: this.stamp(), text: 'To na razie prototyp wyglądu, szefie. Umiem odpalić to, co lata wokół logo. Reszta będzie, jak podłączymy Ollamę.' }]) });
+          }
+        }, 700);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

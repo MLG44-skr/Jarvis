@@ -1,0 +1,12 @@
+# Sekrety
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Dane MLG (baza, modele głosu, logi)
+data/
+*.log
