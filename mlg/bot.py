@@ -1,6 +1,5 @@
 """Bot Telegram: tu MLG odbiera i wysyła wiadomości."""
 
-import asyncio
 import logging
 
 import httpx
@@ -8,13 +7,13 @@ from telegram import Update
 from telegram.constants import ChatAction
 from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 
-from mlg.agent import respond
 from mlg.brain import Brain, BrainError, OllamaBrain
-from mlg.config import Config, load_config
-from mlg.memory import Memory
 from mlg.brief import build_brief, parse_brief_time
+from mlg.config import Config, load_config
+from mlg.core import MLGCore
+from mlg.hud.server import HUDServer
+from mlg.memory import Memory
 from mlg.reminders import background_loop
-from mlg.tools import Toolbox
 
 log = logging.getLogger("mlg")
 
@@ -22,12 +21,12 @@ TELEGRAM_LIMIT = 4096
 
 
 class MLGBot:
-    def __init__(self, config: Config, brain: Brain, memory: Memory, http: httpx.AsyncClient):
+    def __init__(self, config: Config, brain: Brain, memory: Memory, http: httpx.AsyncClient, core: MLGCore | None = None):
         self.config = config
         self.brain = brain
         self.memory = memory
         self.http = http
-        self._locks: dict[int, asyncio.Lock] = {}
+        self.core = core or MLGCore(config, brain, memory, http)
 
     def _allowed(self, update: Update) -> bool:
         user = update.effective_user
@@ -128,22 +127,14 @@ class MLGBot:
         if not self._allowed(update):
             return await self._deny(update)
 
-        user_id = update.effective_user.id
         chat_id = update.effective_chat.id
-        toolbox = Toolbox(self.memory, self.http, self.config.default_city, user_id, chat_id)
-
-        # Jedna wiadomość na raz na szefa, żeby historia się nie pomieszała.
-        lock = self._locks.setdefault(user_id, asyncio.Lock())
-        async with lock:
-            await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
-            try:
-                answer = await respond(
-                    self.brain, self.memory, toolbox, user_id, update.message.text, self.config.history_limit
-                )
-            except BrainError as e:
-                log.error("Błąd mózgu: %s", e)
-                await update.message.reply_text(f"⚠️ {e}")
-                return
+        await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
+        try:
+            answer = await self.core.ask(update.effective_user.id, chat_id, update.message.text)
+        except BrainError as e:
+            log.error("Błąd mózgu: %s", e)
+            await update.message.reply_text(f"⚠️ {e}")
+            return
         await self._send(update, answer)
 
 
@@ -151,14 +142,22 @@ def build_app(config: Config) -> Application:
     brain = OllamaBrain(config.ollama_url, config.ollama_model, config.ollama_num_ctx)
     memory = Memory(config.data_dir / "mlg.db")
     http = httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "MLG-Personal-Assistant"})
-    bot = MLGBot(config, brain, memory, http)
+    core = MLGCore(config, brain, memory, http)
+    bot = MLGBot(config, brain, memory, http, core=core)
+    hud = HUDServer(core, config.hud_host, config.hud_port) if config.hud_port else None
 
     brief_at = parse_brief_time(config.brief_time)
 
     async def on_start(app: Application) -> None:
         app.create_task(background_loop(app, memory, http, config.allowed_user_ids, config.default_city, brief_at))
+        if hud:
+            await hud.start()
+            if config.hud_auto_open:
+                hud.open_in_browser()
 
     async def on_shutdown(app: Application) -> None:
+        if hud:
+            await hud.stop()
         await brain.close()
         await http.aclose()
         memory.close()

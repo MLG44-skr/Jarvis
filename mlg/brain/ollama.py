@@ -61,5 +61,19 @@ class OllamaBrain:
             raw["tool_calls"] = msg["tool_calls"]
         return {"content": content, "tool_calls": calls, "raw": raw}
 
+    async def status(self) -> dict:
+        """Czy Ollama żyje i które modele ma załadowane (dla HUD-a)."""
+        try:
+            resp = await self._client.get("/api/ps", timeout=2.0)
+            resp.raise_for_status()
+        except (httpx.HTTPError, ValueError):
+            return {"online": False, "loaded": [], "vram_mb": 0}
+        models = resp.json().get("models") or []
+        return {
+            "online": True,
+            "loaded": [m.get("name", "?") for m in models],
+            "vram_mb": round(sum(m.get("size_vram", 0) for m in models) / 1024 / 1024),
+        }
+
     async def close(self) -> None:
         await self._client.aclose()

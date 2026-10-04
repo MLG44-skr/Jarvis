@@ -126,6 +126,12 @@ class Memory:
         ).fetchall()
         return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
 
+    def history_with_time(self, user_id: int, limit: int) -> list[dict]:
+        rows = self.db.execute(
+            "SELECT role, content, created_at FROM messages WHERE user_id = ? ORDER BY id DESC LIMIT ?", (user_id, limit)
+        ).fetchall()
+        return [{"role": r[0], "content": r[1], "at": r[2][11:16]} for r in reversed(rows)]
+
     def clear_history(self, user_id: int) -> None:
         self.db.execute("DELETE FROM messages WHERE user_id = ?", (user_id,))
         self.db.commit()

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MLG Personal Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Unbounded:wght@500;700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #010505; --ink: #ecfffb; --muted: #9fc2bd; --soft: #b5d6d1;
+    --accent: #2de2c4; --accent-2: #5cf2d6; --pale: #b8fff0; --deep: #14a38b;
+    --panel: rgba(5,24,26,.62); --line: rgba(45,226,196,.18); --ok: #5ff0b0; --bad: #ff6b6b;
+    --display: Unbounded, "Segoe UI", sans-serif; --body: "Space Grotesk", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(ellipse at 50% 46%, #062023 0%, #03100f 42%, var(--bg) 100%) fixed, var(--bg);
+    color: var(--ink); font-family: var(--body); overflow: hidden;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spinr { to { transform: rotate(-360deg); } }
+  @keyframes glow {
+    0%,100% { box-shadow: 0 0 22px 2px rgba(45,226,196,.55), 0 0 60px 6px rgba(20,163,139,.25), inset 0 0 18px rgba(45,226,196,.35); }
+    50% { box-shadow: 0 0 34px 6px rgba(45,226,196,.8), 0 0 90px 14px rgba(20,163,139,.4), inset 0 0 26px rgba(45,226,196,.55); }
+  }
+  @keyframes drift { 0% { transform: translate(0,0); opacity: .15; } 50% { opacity: .7; } 100% { transform: translate(18px,-46px); opacity: 0; } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  @keyframes beam { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+
+  .app { position: relative; height: 100vh; padding: 24px 28px; display: flex; flex-direction: column; gap: 18px; }
+  .dust { position: fixed; inset: 0; pointer-events: none; }
+  .dust i { position: absolute; border-radius: 50%; animation: drift linear infinite; }
+
+  header { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand .mini { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); background: #041214;
+    box-shadow: 0 0 14px rgba(45,226,196,.6); display: grid; place-items: center; font-family: Pacifico, cursive; font-size: 13px; }
+  .brand b { font-family: var(--display); font-weight: 900; font-size: 19px; letter-spacing: 5px; }
+  .brand span { font-size: 12px; color: var(--muted); letter-spacing: 3px; padding-left: 14px; border-left: 1px solid rgba(45,226,196,.25); }
+  .clock { text-align: right; }
+  .clock .t { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: 2px; }
+  .clock .d { font-size: 12px; color: var(--muted); }
+
+  main { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: 280px minmax(0,1fr) 400px; gap: 24px; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .panel { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .panel h2 { margin: 0; font-family: var(--display); font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--accent-2); }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; }
+  .row .k { color: var(--soft); }
+  .row .v { display: flex; align-items: center; gap: 8px; text-align: right; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); animation: blink 1.6s ease-in-out infinite; flex: none; }
+  .dot.off { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+  .meter .top { display: flex; justify-content: space-between; font-size: 13px; color: var(--soft); }
+  .meter .top b { font-family: var(--display); font-size: 12px; font-weight: 500; color: var(--ink); }
+  .meter .bar { height: 6px; border-radius: 3px; background: rgba(45,226,196,.1); overflow: hidden; margin-top: 6px; }
+  .meter .bar i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--deep), var(--accent));
+    box-shadow: 0 0 8px rgba(45,226,196,.7); transition: width .5s; }
+  .list { display: flex; flex-direction: column; gap: 8px; overflow: auto; min-height: 0; }
+  .list div { display: flex; gap: 10px; align-items: baseline; font-size: 13px; }
+  .list time { font-family: var(--display); font-size: 11px; color: var(--deep); flex: none; }
+  .list .empty { color: var(--muted); }
+  .grow { flex: 1; min-height: 0; }
+
+  .core { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-width: 0; min-height: 0; }
+  .stage-wrap { width: 100%; flex: 1; min-height: 0; display: grid; place-items: center; }
+  .stage { position: relative; width: 600px; height: 600px; flex: none; transform-origin: center; }
+  .track, .spin { position: absolute; border-radius: 50%; }
+  .track { border: 1px solid rgba(45,226,196,.14); }
+  .track.dashed { border-style: dashed; }
+  .pos { position: absolute; transform: translate(-50%,-50%); transition: opacity .3s; }
+  .pos.dim { opacity: .35; }
+  .counter { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .pt { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; padding: 0;
+    border: 1px solid rgba(45,226,196,.55); background: rgba(4,20,22,.9); box-shadow: 0 0 10px rgba(45,226,196,.35); color: var(--pale);
+    transition: transform .25s, box-shadow .25s, background .25s, width .25s, height .25s; }
+  .pt:hover { transform: scale(1.15); }
+  .pt:focus-visible { outline: 2px solid var(--pale); outline-offset: 3px; }
+  .pt svg { width: 16px; height: 16px; }
+  .lbl { font-size: 11px; letter-spacing: .5px; white-space: nowrap; color: var(--soft); }
+  .on .pt { width: 50px; height: 50px; border-color: #fff; color: #fff; background: radial-gradient(circle, var(--accent), #0b6f62);
+    box-shadow: 0 0 24px 6px rgba(45,226,196,.85), 0 0 60px rgba(20,163,139,.6); }
+  .on .lbl { color: #fff; font-weight: 600; text-shadow: 0 0 8px var(--accent); }
+  .beam { position: absolute; height: 2px; margin-top: -1px; transform-origin: 0 50%; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: linear-gradient(90deg, rgba(45,226,196,0) 20%, var(--accent) 70%, #fff); box-shadow: 0 0 10px var(--accent), 0 0 20px var(--deep); }
+  .beam.on { opacity: 1; animation: beam .6s ease-in-out infinite; }
+  .ring-deco { position: absolute; left: 50%; top: 50%; border-radius: 50%; pointer-events: none; }
+  .logo { position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%;
+    border: 3px solid var(--accent); background: radial-gradient(circle at 50% 45%, #0f3d3d 0%, #072022 55%, #041214 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; animation: glow 3.4s ease-in-out infinite; }
+  .logo .m { font-family: Pacifico, cursive; font-size: 52px; line-height: 1.1; color: #fff; text-shadow: 0 0 8px var(--accent), 0 0 22px var(--accent), 0 0 44px var(--deep); }
+  .logo .s { font-family: var(--display); font-size: 9px; letter-spacing: 3px; color: var(--pale); }
+  .status { text-align: center; display: flex; flex-direction: column; gap: 5px; }
+  .status .mode { font-family: var(--display); font-size: 12px; letter-spacing: 4px; color: var(--accent-2); }
+  .status .line { font-size: 19px; }
+  .status .hint { font-size: 12px; color: var(--muted); }
+
+  .chat { padding: 0; min-height: 0; }
+  .chat .head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(45,226,196,.14); }
+  .chat .head small { font-size: 12px; color: var(--muted); }
+  .msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .msg { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+  .msg.me { align-items: flex-end; }
+  .msg small { font-size: 11px; letter-spacing: 1px; color: var(--muted); }
+  .msg p { margin: 0; max-width: 88%; padding: 10px 13px; border-radius: 12px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-wrap: break-word;
+    background: rgba(2,8,9,.85); border: 1px solid rgba(45,226,196,.32); }
+  .msg.me p { background: rgba(20,163,139,.2); border-color: rgba(20,163,139,.45); }
+  .msg.err p { border-color: rgba(255,107,107,.5); color: #ffd6d6; }
+  form { display: flex; gap: 10px; padding: 12px; border-top: 1px solid rgba(45,226,196,.14); }
+  input { flex: 1; min-width: 0; height: 46px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(45,226,196,.28);
+    background: rgba(2,8,9,.8); color: #fff; font: 15px var(--body); }
+  input::placeholder { color: #6f8f8a; }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,226,196,.18); }
+  .btn { width: 46px; height: 46px; border-radius: 10px; border: 1px solid var(--accent); background: rgba(45,226,196,.12); display: grid; place-items: center; cursor: pointer; color: #fff; }
+  .btn:hover { background: rgba(45,226,196,.22); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn:focus-visible { outline: 2px solid var(--pale); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  footer { position: relative; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #041214; border: 1px solid var(--accent);
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 1200px) {
+    body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; }
+    main { grid-template-columns: 1fr; }
+    .core { order: -1; }
+    .chat { min-height: 480px; }
+  }
+</style>
+</head>
+<body>
+<div class="dust" id="dust" aria-hidden="true"></div>
+<div class="app">
+  <header>
+    <div class="brand"><div class="mini">MLG</div><b>M.L.G.</b><span>PERSONAL ASSISTANT</span></div>
+    <div class="clock"><div class="t" id="time">--:--:--</div><div class="d" id="date"></div></div>
+  </header>
+
+  <main>
+    <section class="col" aria-label="Status systemu">
+      <div class="panel">
+        <h2>STATUS</h2>
+        <div class="row"><span class="k">Mózg</span><span class="v"><i class="dot" id="ollama-dot"></i><span id="brain">…</span></span></div>
+        <div class="row"><span class="k">Telegram</span><span class="v"><i class="dot"></i>połączony</span></div>
+        <div class="row"><span class="k">Załadowany model</span><span class="v" id="loaded">…</span></div>
+        <div class="row"><span class="k">Głos</span><span class="v" style="color:var(--muted)">wkrótce (Etap 3)</span></div>
+      </div>
+      <div class="panel">
+        <h2>ZASOBY PC</h2>
+        <div class="meter"><div class="top"><span>CPU</span><b id="cpu-v">0%</b></div><div class="bar"><i id="cpu-b"></i></div></div>
+        <div class="meter"><div class="top"><span>RAM <small id="ram-gb"></small></span><b id="ram-v">0%</b></div><div class="bar"><i id="ram-b"></i></div></div>
+        <div class="meter"><div class="top"><span>VRAM (Ollama)</span><b id="vram-v">0 MB</b></div><div class="bar"><i id="vram-b"></i></div></div>
+      </div>
+      <div class="panel"><h2>PRZYPOMNIENIA</h2><div class="list" id="reminders"></div></div>
+      <div class="panel grow"><h2>OSTATNIE AKCJE</h2><div class="list" id="actions"></div></div>
+    </section>
+
+    <section class="core" aria-label="Rdzeń MLG">
+      <div class="stage-wrap" id="stage-wrap">
+        <div class="stage" id="stage">
+          <div class="ring-deco" style="width:236px;height:236px;margin:-118px 0 0 -118px;border:2px dashed rgba(45,226,196,.4);animation:spin 24s linear infinite"></div>
+          <div class="ring-deco" style="width:214px;height:214px;margin:-107px 0 0 -107px;border:7px solid transparent;border-top-color:var(--accent);border-bottom-color:rgba(45,226,196,.45);filter:drop-shadow(0 0 8px rgba(45,226,196,.8));animation:spinr 9s linear infinite"></div>
+          <div class="ring-deco" style="width:190px;height:190px;margin:-95px 0 0 -95px;border:2px solid transparent;border-left-color:var(--pale);border-right-color:rgba(184,255,240,.35);animation:spin 5s linear infinite"></div>
+          <div class="logo"><div class="m">MLG</div><div class="s" id="core-label">ONLINE</div></div>
+        </div>
+      </div>
+      <div class="status">
+        <div class="mode" id="mode">GOTOWY</div>
+        <div class="line" id="status-line">Do usług, szefie.</div>
+        <div class="hint">Kliknij cokolwiek, co lata, albo napisz np. „odpal spotify”</div>
+      </div>
+    </section>
+
+    <section class="panel chat" aria-label="Rozmowa">
+      <div class="head"><h2>ROZMOWA</h2><small>ta sama co w Telegramie</small></div>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <form id="form">
+        <label for="input" class="sr">Wiadomość do MLG</label>
+        <input id="input" autocomplete="off" placeholder="Napisz do MLG…">
+        <button type="button" class="btn" disabled aria-label="Mów do MLG (wkrótce)" title="Głos: Etap 3">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <button type="submit" class="btn" id="send" aria-label="Wyślij">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <footer><span>Wszystko lokalnie na Twoim PC · 0 zł/mies.</span><span>MLG Personal Assistant</span></footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const TOKEN = "__MLG_TOKEN__";
+const $ = (id) => document.getElementById(id);
+const RADII = [150, 222, 290], SECS = [46, 70, 100];
+const ICONS = {
+  app: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 9l5 3-5 3z"/></svg>',
+  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  tool: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>',
+};
+const nodes = {};   // id -> {pos, beam, name}
+let localActive = null, localUntil = 0, pending = null, lastMsgKey = "";
+
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: body ? "POST" : "GET",
+    headers: { "X-MLG-Token": TOKEN, ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ("błąd " + res.status));
+  return data;
+}
+
+function toast(text) {
+  const t = $("toast"); t.textContent = text; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+function buildDust() {
+  const box = $("dust");
+  for (let i = 0; i < 46; i++) {
+    const d = document.createElement("i"), s = 1 + (i % 3), c = i % 2 ? "#2de2c4" : "#14a38b";
+    Object.assign(d.style, { left: (i * 97 % 100) + "vw", top: (8 + i * 37 % 88) + "vh", width: s + "px", height: s + "px",
+      background: c, boxShadow: "0 0 6px " + c, animationDuration: (6 + i % 7) + "s", animationDelay: "-" + (i % 9) + "s" });
+    box.appendChild(d);
+  }
+}
+
+function buildOrbits(rings) {
+  const stage = $("stage"), logo = stage.querySelector(".logo");
+  rings.slice(0, 3).forEach((items, ri) => {
+    const r = RADII[ri], rev = ri === 1, n = items.length;
+    const track = document.createElement("div");
+    track.className = "track" + (ri === 1 ? " dashed" : "");
+    Object.assign(track.style, { left: 300 - r + "px", top: 300 - r + "px", width: 2 * r + "px", height: 2 * r + "px" });
+    const spin = document.createElement("div");
+    spin.className = "spin";
+    Object.assign(spin.style, { left: 300 - r + "px", top: 300 - r + "px", width: 2 * r + "px", height: 2 * r + "px",
+      animation: (rev ? "spinr " : "spin ") + SECS[ri] + "s linear infinite" });
+    items.forEach((it, i) => {
+      const deg = 360 / n * i + ri * 23, rad = deg * Math.PI / 180;
+      const beam = document.createElement("div");
+      beam.className = "beam";
+      Object.assign(beam.style, { left: r + "px", top: r + "px", width: r + "px", transform: "rotate(" + deg + "deg)" });
+      const pos = document.createElement("div");
+      pos.className = "pos";
+      Object.assign(pos.style, { left: r + r * Math.cos(rad) + "px", top: r + r * Math.sin(rad) + "px" });
+      const counter = document.createElement("div");
+      counter.className = "counter";
+      counter.style.animation = (rev ? "spin " : "spinr ") + SECS[ri] + "s linear infinite";
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "pt"; btn.innerHTML = ICONS[it.kind] || ICONS.tool;
+      btn.setAttribute("aria-label", (it.kind === "folder" ? "Otwórz folder " : "Odpal ") + it.name);
+      btn.addEventListener("click", () => openItem(it.id, it.name));
+      const lbl = document.createElement("div");
+      lbl.className = "lbl"; lbl.textContent = it.name;
+      counter.append(btn, lbl); pos.appendChild(counter); spin.append(beam, pos);
+      nodes[it.id] = { pos, beam, name: it.name };
+    });
+    stage.insertBefore(track, logo); stage.insertBefore(spin, logo);
+  });
+}
+
+function fitStage() {
+  const wrap = $("stage-wrap"), s = Math.min(wrap.clientWidth / 640, wrap.clientHeight / 640, 1.15);
+  $("stage").style.transform = "scale(" + Math.max(s, .45) + ")";
+}
+
+function setActive(id) {
+  for (const [key, n] of Object.entries(nodes)) {
+    n.pos.classList.toggle("on", key === id);
+    n.pos.classList.toggle("dim", !!id && key !== id);
+    n.beam.classList.toggle("on", key === id);
+  }
+}
+
+async function openItem(id, name) {
+  localActive = id; localUntil = Date.now() + 4500; setActive(id);
+  try { await api("/api/open", { id }); toast("Odpalam " + name + ", szefie."); }
+  catch (e) { toast("Nie wyszło: " + e.message); }
+  refresh();
+}
+
+function renderList(el, rows, emptyText) {
+  el.replaceChildren();
+  if (!rows.length) { const d = document.createElement("div"); d.className = "empty"; d.textContent = emptyText; el.appendChild(d); return; }
+  for (const r of rows) {
+    const d = document.createElement("div"), t = document.createElement("time"), s = document.createElement("span");
+    t.textContent = r.at; s.textContent = r.text; d.append(t, s); el.appendChild(d);
+  }
+}
+
+function renderMessages(messages) {
+  const all = messages.slice();
+  if (pending) all.push(pending.me, ...(pending.err ? [pending.err] : []));
+  const key = all.length + "|" + (all.at(-1)?.content || "") + "|" + (pending ? 1 : 0);
+  if (key === lastMsgKey) return;
+  lastMsgKey = key;
+  const box = $("msgs"), stick = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  box.replaceChildren();
+  if (!all.length) {
+    const d = document.createElement("div"); d.className = "msg";
+    d.innerHTML = "<small>MLG</small><p></p>"; d.querySelector("p").textContent = "Siema, szefie. Pisz tu albo na Telegramie, rozmowa jest jedna.";
+    box.appendChild(d);
+  }
+  for (const m of all) {
+    const d = document.createElement("div"), small = document.createElement("small"), p = document.createElement("p");
+    d.className = "msg" + (m.role === "user" ? " me" : "") + (m.role === "error" ? " err" : "");
+    small.textContent = (m.role === "user" ? "TY" : "MLG") + (m.at ? " · " + m.at : "");
+    p.textContent = m.content; d.append(small, p); box.appendChild(d);
+  }
+  if (stick) box.scrollTop = box.scrollHeight;
+}
+
+function meter(id, pct, label) {
+  $(id + "-b").style.width = Math.max(0, Math.min(100, pct)) + "%";
+  $(id + "-v").textContent = label;
+}
+
+async function refresh() {
+  let s;
+  try { s = await api("/api/state"); }
+  catch (e) { $("mode").textContent = "BRAK POŁĄCZENIA"; $("status-line").textContent = "MLG nie odpowiada. Czy okno MLG jest włączone?"; return; }
+  $("brain").textContent = s.brain;
+  $("ollama-dot").classList.toggle("off", s.ollama.online === false);
+  $("loaded").textContent = s.ollama.online === false ? "Ollama wyłączona" : (s.ollama.loaded.join(", ") || "czeka (ładuje się przy pierwszym pytaniu)");
+  meter("cpu", s.cpu, s.cpu + "%");
+  meter("ram", s.ram, s.ram + "%");
+  $("ram-gb").textContent = "(" + s.ram_gb + ")";
+  meter("vram", Math.min(100, s.ollama.vram_mb / 80), s.ollama.vram_mb + " MB");
+  renderList($("reminders"), s.reminders, "Nic zaplanowanego.");
+  renderList($("actions"), s.actions, "Jeszcze nic dziś nie robiłem.");
+  renderMessages(s.messages);
+
+  const active = s.active || (Date.now() < localUntil ? localActive : null);
+  setActive(active);
+  const busy = s.busy || !!pending && !pending.err;
+  $("core-label").textContent = active ? "WCHODZĘ" : busy ? "MYŚLĘ" : "ONLINE";
+  $("mode").textContent = active ? "AKCJA" : busy ? "PRZETWARZAM" : "GOTOWY";
+  $("status-line").textContent = active && nodes[active] ? "Wchodzę w " + nodes[active].name + "…" : busy ? "Chwileczkę, szefie…" : "Do usług, szefie.";
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = $("input"), text = input.value.trim();
+  if (!text || pending) return;
+  input.value = "";
+  pending = { me: { role: "user", content: text } };
+  $("send").disabled = true;
+  refresh();
+  try { await api("/api/chat", { text }); pending = null; }
+  catch (err) { pending.err = { role: "error", content: "⚠️ " + err.message }; setTimeout(() => { pending = null; lastMsgKey = ""; refresh(); }, 6000); }
+  $("send").disabled = false;
+  input.focus();
+  refresh();
+});
+
+function tick() {
+  const now = new Date(), pad = (n) => String(n).padStart(2, "0");
+  $("time").textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+  $("date").textContent = now.toLocaleDateString("pl-PL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+(async function init() {
+  buildDust(); tick(); setInterval(tick, 1000);
+  try { buildOrbits((await api("/api/orbits")).rings); } catch (e) { toast("Nie mogę pobrać orbit: " + e.message); }
+  fitStage(); addEventListener("resize", fitStage);
+  refresh(); setInterval(refresh, 1500);
+})();
+</script>
+</body>
+</html>

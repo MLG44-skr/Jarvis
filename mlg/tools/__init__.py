@@ -6,6 +6,8 @@ from typing import Any
 
 import httpx
 
+from mlg.activity import Activity
+from mlg.launcher import Launcher, LaunchError
 from mlg.memory import Memory
 from mlg.tools.calc import calculate
 from mlg.tools.currency import get_rate
@@ -81,6 +83,13 @@ TOOL_SPECS = [
         ["kod"],
     ),
     _fn(
+        "otworz",
+        "Odpala program albo otwiera folder na komputerze szefa (np. Spotify, Discord, Chrome, Steam, VS Code, "
+        "Pobrane, Dokumenty, Pulpit, Notatnik, Kalkulator, Ustawienia).",
+        {"co": {"type": "string", "description": "Nazwa programu albo folderu, np. 'Spotify' albo 'Pobrane'"}},
+        ["co"],
+    ),
+    _fn(
         "oblicz",
         "Liczy wyrażenie matematyczne. Zawsze używaj do obliczeń zamiast liczyć w głowie.",
         {"wyrazenie": {"type": "string", "description": "Np. '(120*3)/4' albo '2^10'"}},
@@ -116,13 +125,18 @@ def parse_when(kiedy: str | None, za_minut: Any, now: datetime) -> datetime:
 class Toolbox:
     """Wykonuje narzędzia w imieniu konkretnego szefa (user_id) w konkretnym czacie."""
 
-    def __init__(self, memory: Memory, http: httpx.AsyncClient, default_city: str, user_id: int, chat_id: int):
+    def __init__(
+        self, memory: Memory, http: httpx.AsyncClient, default_city: str, user_id: int, chat_id: int,
+        launcher: Launcher | None = None, activity: Activity | None = None,
+    ):
         self.memory = memory
         self.http = http
         self.default_city = default_city
         self.user_id = user_id
         self.chat_id = chat_id
-        self.actions: list[str] = []  # krótki log tego, co MLG zrobił (dla HUD i logów)
+        self.launcher = launcher or Launcher()
+        self.activity = activity
+        self.actions: list[str] = []  # nazwy użytych narzędzi (do logów i testów)
 
     async def run(self, name: str, args: dict[str, Any] | None) -> str:
         args = args or {}
@@ -133,12 +147,14 @@ class Toolbox:
             result = await handler(**{k: v for k, v in args.items() if v is not None})
         except TypeError as e:
             return f"Błąd: złe parametry dla '{name}' ({e})."
-        except ValueError as e:
+        except (ValueError, LaunchError) as e:
             return f"Błąd: {e}."
         except httpx.HTTPError as e:
             log.warning("Narzędzie %s: błąd sieci %s", name, e)
             return "Błąd: brak połączenia z serwisem. Spróbuj później."
         self.actions.append(name)
+        if self.activity and name != "otworz":
+            self.activity.tool(name)
         return result
 
     async def _t_zapamietaj(self, fakt: str) -> str:
@@ -187,6 +203,18 @@ class Toolbox:
 
     async def _t_kurs_waluty(self, kod: str) -> str:
         return await get_rate(self.http, kod)
+
+    async def _t_otworz(self, co: str) -> str:
+        item = self.launcher.find(co)
+        if item is None:
+            known = ", ".join(i.name for i in self.launcher.items.values())
+            return f"Nie znam '{co}'. Umiem odpalić: {known}."
+        if self.activity:
+            self.activity.highlight(item.id)
+        result = self.launcher.open(item)
+        if self.activity:
+            self.activity.log(item.verb())
+        return result
 
     async def _t_oblicz(self, wyrazenie: str) -> str:
         return calculate(wyrazenie)

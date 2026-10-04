@@ -18,6 +18,9 @@ class Config:
     data_dir: Path
     default_city: str
     brief_time: str = ""
+    hud_host: str = "127.0.0.1"
+    hud_port: int = 0  # 0 = HUD wyłączony
+    hud_auto_open: bool = False
 
 
 def _parse_ids(raw: str) -> frozenset[int]:
@@ -49,4 +52,7 @@ def load_config() -> Config:
         data_dir=Path(os.getenv("DATA_DIR", "data")),
         default_city=os.getenv("DEFAULT_CITY", "").strip(),
         brief_time=os.getenv("BRIEF_TIME", "").strip(),
+        hud_host=os.getenv("HUD_HOST", "127.0.0.1").strip(),
+        hud_port=int(os.getenv("HUD_PORT", "8044") or 0),
+        hud_auto_open=os.getenv("HUD_AUTO_OPEN", "1").strip().lower() in ("1", "true", "tak", "yes"),
     )

@@ -12,6 +12,10 @@ Pełny plan: [`PLAN.md`](PLAN.md) / [`Plan_Jarvis.pdf`](Plan_Jarvis.pdf)
 - 🌤️ Pogoda (Open-Meteo) i 💱 kursy walut (NBP), darmowe i bez kluczy
 - 🧮 Kalkulator
 - ☀️ Poranny brief o stałej godzinie: pogoda, plan dnia, listy
+- 🚀 Odpala apki i foldery na Windowsie („odpal spotify”, „otwórz pobrane”)
+- 🌊 **HUD na pulpit**: koło MLG z Twoimi rzeczami na orbitach, na żywo
+
+![HUD MLG](design/hud-screenshot.png)
 
 ---
 
@@ -47,6 +51,13 @@ Wpisz to ID w `.env` jako `ALLOWED_USER_IDS`, zamknij okno MLG i odpal `start_ml
 
 Gotowe. Pisz do MLG z telefonu 💎
 
+### 6. HUD
+Przy starcie MLG sam otworzy w przeglądarce **http://127.0.0.1:8044**: koło MLG, orbity, status kompa i tę samą rozmowę co w Telegramie.
+- Kliknij kulkę na orbicie, a MLG ją odpali (promień pokaże, gdzie wchodzi).
+- Napisz w HUD-zie albo w Telegramie, bo rozmowa jest jedna.
+- HUD działa **tylko na Twoim komputerze**, nikt z zewnątrz się do niego nie dobije.
+- Pełny ekran: w przeglądarce **F11**. Nie chcesz, żeby się otwierał sam? Ustaw `HUD_AUTO_OPEN=0`. Wyłączenie HUD-a: `HUD_PORT=0`.
+
 ---
 
 ## 💬 Komendy
@@ -61,7 +72,7 @@ Gotowe. Pisz do MLG z telefonu 💎
 | `/reset` | czyści rozmowę (pamięć o Tobie zostaje) |
 | `/model` | na jakim mózgu jedzie MLG |
 
-Resztę mówisz normalnie: „przypomnij mi za 20 minut o pizzy”, „jaka pogoda w Gdańsku?”, „ile to 15% z 240?”, „po ile euro?”.
+Resztę mówisz normalnie: „przypomnij mi za 20 minut o pizzy”, „jaka pogoda w Gdańsku?”, „ile to 15% z 240?”, „po ile euro?”, „odpal discorda”.
 
 ## 🛠️ Problemy
 - **„Nie mogę się połączyć z Ollamą”**: Ollama nie chodzi. Odpal ją z menu Start (ikonka w trayu).
@@ -69,6 +80,8 @@ Resztę mówisz normalnie: „przypomnij mi za 20 minut o pizzy”, „jaka pogo
 - **Pierwsza odpowiedź długo się ładuje**: normalka, Ollama ładuje model do pamięci. Następne są szybsze.
 - **MLG nie odpowiada, gdy komp śpi**: wyłącz usypianie w ustawieniach zasilania Windowsa.
 - **Wtrąca angielski/chiński**: zdarza się małym modelom. Pomaga `/reset`.
+- **HUD się nie otwiera**: wejdź ręcznie na http://127.0.0.1:8044. Jak port jest zajęty, zmień `HUD_PORT` w `.env`.
+- **„Nie udało się odpalić…”**: tego programu nie masz zainstalowanego (np. Steam albo Discord).
 
 ## 🧪 Testy (dla ciekawych)
 ```powershell
@@ -84,12 +97,15 @@ mlg/
 ├── brain/          # mózg (Ollama, później opcjonalnie Claude)
 ├── memory.py       # pamięć SQLite (fakty, rozmowa, listy, przypomnienia)
 ├── tools/          # narzędzia: pogoda, waluty, kalkulator, listy, przypomnienia
+├── core.py         # serce MLG (wspólne dla Telegrama i HUD-a)
+├── launcher.py     # odpalanie apek i folderów (kulki na orbitach)
+├── activity.py     # co MLG robi teraz (dla HUD-a)
+├── hud/            # HUD: lokalny serwer + strona z kołem
 ├── brief.py        # poranny brief
 ├── reminders.py    # pętla w tle (przypomnienia + brief)
 ├── persona.py      # osobowość MLG
 └── config.py       # ustawienia z .env
-design/
-└── hud-prototyp.dc.html   # prototyp wyglądu HUD-a na pulpit
+design/             # prototyp i zrzut HUD-a
 tests/              # testy
 ```
 Pamięć MLG leży w `data/mlg.db` (poza gitem). Usuniesz ten plik, a MLG zapomni wszystko.

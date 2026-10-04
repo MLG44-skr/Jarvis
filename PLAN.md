@@ -14,8 +14,8 @@ Osobisty asystent AI w klimacie Jarvisa z Iron Mana: połączony z Telegramem, d
 | 3 | Głos (głosówki w Telegramie) | 🔜 |
 | 4 | Narzędzia: przypomnienia, listy, pogoda, waluty, kalkulator | ✅ kod gotowy |
 | 5 | Poranny brief | ✅ kod gotowy |
-| 6 | HUD na pulpit (turkusowe koło + orbity) | 🎨 prototyp wyglądu gotowy |
-| 7 | Sterowanie Windowsem + Twoje apki na orbitach + nawyki | 🔜 |
+| 6 | HUD na pulpit (turkusowe koło + orbity) | ✅ kod gotowy |
+| 7 | Sterowanie Windowsem + Twoje apki na orbitach + nawyki | 🟡 odpalanie apek i folderów gotowe |
 | 8 | Claude Code: odpalanie projektów + tryb `/madry` | 🔜 |
 | 9 | Bajery: wake word, kalendarz, smart home, serwer 24/7 | 🔜 |
 
@@ -138,21 +138,22 @@ Qwen sam decyduje, kiedy użyć narzędzia (tool calling):
 - `/brief` daje brief od razu.
 - 🔜 Proaktywne podpowiedzi („szefie, 20:00, odpalić Discorda?”) w Etapie 7.
 
-### Etap 6: HUD na pulpit 🎨
+### Etap 6: HUD na pulpit ✅
 
-Prototyp wyglądu jest w [`design/hud-prototyp.dc.html`](design/hud-prototyp.dc.html):
+Lokalna strona **http://127.0.0.1:8044**, otwiera się sama przy starcie MLG:
 
 - 🌊 Bardzo ciemny motyw z **turkusem i morską zielenią**.
 - ⭕ **Koło jak w Jarvisie**: trzy kręcące się pierścienie i pulsujący rdzeń z napisem **MLG**.
 - 🪐 **Twoje rzeczy z kompa latają wokół** na orbitach (apki, foldery, narzędzia).
 - ⚡ **Widać, gdzie wchodzi MLG**: przy „odpal spotify” z koła wystrzeliwuje promień do tej rzeczy, a ona się rozświetla.
-- 💬 Panel rozmowy zsynchronizowany z Telegramem, status systemu, zasoby PC, ostatnie akcje.
+- 💬 Rozmowa **wspólna z Telegramem** (piszesz tu albo tu), status Ollamy, CPU/RAM/VRAM, przypomnienia, ostatnie akcje.
+- 🔒 Działa tylko na Twoim komputerze i jest zabezpieczona losowym tokenem, więc obce strony nie wydadzą MLG poleceń.
+- 🔜 Później: osobne okno bez przeglądarki, dźwięki, animacja przy głosie.
 
-Do zrobienia: prawdziwa wersja, czyli lokalna strona (albo okno pełnoekranowe) podpięta pod MLG na żywo.
+### Etap 7: Sterowanie Windowsem + nawyki 🟡
 
-### Etap 7: Sterowanie Windowsem + nawyki 🔜
-
-- 💻 „Odpal Spotify”, „otwórz Pobrane”, „wycisz kompa”, „zablokuj ekran”, „zrób screenshota”.
+- ✅ „Odpal Spotify”, „otwórz Pobrane”, „odpal kalkulator” z Telegrama, z HUD-a i kliknięciem w kulkę.
+- 🔜 „Wycisz kompa”, „zablokuj ekran”, „zrób screenshota”.
 - 🪐 Skan menu Start, pulpitu i ostatnich folderów, żeby na orbitach HUD-a latały **Twoje prawdziwe** apki i foldery.
 - 📈 **Nawyki**: MLG widzi, co i kiedy odpalasz. Częste rzeczy lecą bliżej środka, a on sam podpowiada.
 - 🔒 Tylko z Twojego ID, a ryzykowne akcje z potwierdzeniem (przyciski Tak/Nie w Telegramie).
@@ -209,11 +210,14 @@ Jarvis/
 │   ├── brain/            # Ollama (domyślny), później Claude
 │   ├── memory.py         # SQLite: fakty, rozmowy, listy, przypomnienia
 │   ├── tools/            # pogoda, waluty, kalkulator (+ listy, przypomnienia)
+│   ├── core.py           # serce MLG (Telegram + HUD)
+│   ├── launcher.py       # odpalanie apek i folderów
+│   ├── hud/              # HUD: lokalny serwer + strona z kołem
 │   ├── brief.py          # poranny brief
 │   ├── reminders.py      # pętla w tle
 │   ├── persona.py        # osobowość MLG
 │   └── config.py         # ustawienia z .env
-├── design/               # prototyp HUD-a
+├── design/               # prototyp i zrzut HUD-a
 ├── tests/                # testy automatyczne
 ├── data/                 # baza MLG (poza gitem)
 ├── .env.example          # wzór ustawień
@@ -233,7 +237,7 @@ Jarvis/
 - [ ] Etap 3: Głos
 - [x] Etap 4: Narzędzia (kod)
 - [x] Etap 5: Poranny brief (kod)
-- [ ] Etap 6: HUD na pulpit (prototyp ✅, wersja prawdziwa ⏳)
-- [ ] Etap 7: Sterowanie Windowsem + nawyki
+- [x] Etap 6: HUD na pulpit (kod)
+- [ ] Etap 7: Sterowanie Windowsem + nawyki (odpalanie apek ✅)
 - [ ] Etap 8: Claude Code + `/madry`
 - [ ] Etap 9: Bajery

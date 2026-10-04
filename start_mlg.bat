@@ -1,15 +1,16 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
+title MLG Personal Assistant
 
 if not exist venv (
     echo Tworze srodowisko Pythona...
     python -m venv venv || goto :error
-    call venv\Scripts\activate.bat
-    pip install -r requirements.txt || goto :error
-) else (
-    call venv\Scripts\activate.bat
 )
+call venv\Scripts\activate.bat
+
+echo Sprawdzam biblioteki...
+pip install -q --disable-pip-version-check -r requirements.txt || goto :error
 
 if not exist .env (
     echo Brak pliku .env. Skopiuj .env.example jako .env i uzupelnij token.
