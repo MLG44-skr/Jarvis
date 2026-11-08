@@ -1,0 +1,1332 @@
+<title>Español Diario</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Układ: jedna kolumna (max 640px), sticky nagłówek, dolna nawigacja, pełnoekranowy overlay na quizy/fiszki. Dark-only. */
+:root{--bg:#0e1116;--bg2:#141922;--card:#181e29;--card2:#202838;--line:#262f3d;--fg:#e7eaf0;--mut:#8f99a8;--acc:#e9b44c;--acc-ink:#1b1406;--ok:#58c08a;--bad:#e2655d;--info:#6ea6ea;--r:12px;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
+#app{max-width:640px;margin:0 auto;padding-bottom:92px}
+header#top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:.2px;margin-right:auto}
+#chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.chip b{color:var(--fg);font-weight:600}
+.chip.ok{color:var(--ok);border-color:#2b5a45}.chip.bad{color:var(--bad);border-color:#6a3430}.chip.acc{color:var(--acc);border-color:#6b5628}
+button{font:inherit;color:inherit;cursor:pointer}
+.ico{background:none;border:1px solid var(--line);border-radius:10px;width:40px;height:40px;font-size:18px;color:var(--mut)}
+#banner:empty{display:none}
+#banner div{margin-top:10px;padding:10px 12px;border-radius:var(--r);background:#2a2214;border:1px solid #6b5628;color:#f1d89b;font-size:14px}
+main{padding-top:14px;display:flex;flex-direction:column;gap:14px;min-width:0}
+h1,h2,h3{margin:0;line-height:1.25;text-wrap:balance}
+h2{font-size:18px}h3{font-size:15px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+p{margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-width:0}
+.card.flat{background:transparent}
+.row{display:flex;gap:10px;align-items:center;min-width:0}.row.wrap{flex-wrap:wrap}.sp{flex:1;min-width:0}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.mut{color:var(--mut)}.small{font-size:13px}.tiny{font-size:12px}.ok{color:var(--ok)}.bad{color:var(--bad)}.acc{color:var(--acc)}
+.btn{min-height:46px;padding:10px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--card2);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:14px;border-radius:10px}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.45;cursor:default}
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.seg button{flex:1;border:0;background:none;padding:10px 6px;color:var(--mut);font-weight:600;min-height:44px}
+.seg button.on{background:var(--card2);color:var(--fg);box-shadow:inset 0 -2px 0 var(--acc)}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--acc);border-radius:6px}
+.bar.ok>i{background:var(--ok)}
+input,textarea,select{font:inherit;font-size:16px;color:var(--fg);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-width:0}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+textarea{resize:vertical;min-height:48px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--mut)}
+nav#nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg2);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.navin{max-width:640px;margin:0 auto;display:flex;gap:4px}
+.navin button{flex:1;background:none;border:0;padding:10px 2px;border-radius:10px;color:var(--mut);font-weight:600;font-size:13px;position:relative}
+.navin button.on{color:var(--acc);background:var(--card)}
+.navin .dot{position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:var(--acc);color:var(--acc-ink);font-size:10px;line-height:16px;padding:0 4px;font-weight:700}
+#ov{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px))}
+.ovin{max-width:640px;margin:0 auto;padding:12px 0 48px;display:flex;flex-direction:column;gap:14px;min-height:100%}
+.ovtop{display:flex;align-items:center;gap:12px}.ovtop .bar{flex:1}
+#modal{position:fixed;inset:0;z-index:80;background:rgba(5,7,10,.7);display:flex;align-items:center;justify-content:center;padding:20px}
+#modal .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px;max-height:90%;overflow:auto}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:90;background:var(--card2);border:1px solid var(--line);padding:10px 16px;border-radius:99px;font-size:14px;max-width:90%;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+.step{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+.step .n{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--mut);flex:none}
+.step.done .n{background:var(--ok);border-color:var(--ok);color:#06210f}
+.step.next{border-color:var(--acc)}
+.big{font-size:30px;font-weight:700;text-align:center;line-height:1.2;overflow-wrap:anywhere}
+.fcard{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px 16px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;padding:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);min-height:52px;font-size:17px}
+.opt.good{background:#17352a;border-color:var(--ok)}.opt.wrong{background:#3a1c1a;border-color:var(--bad)}
+.fb{padding:12px;border-radius:var(--r);border:1px solid var(--line)}.fb.good{background:#142a21;border-color:#2b5a45}.fb.wrong{background:#2e1816;border-color:#6a3430}
+.tok{display:inline-flex;padding:9px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);margin:3px;font-size:17px}
+.slot{min-height:56px;border:1px dashed var(--line);border-radius:var(--r);padding:6px;display:flex;flex-wrap:wrap;align-content:flex-start}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pairs button{padding:12px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card);min-height:50px;overflow-wrap:anywhere}
+.pairs button.sel{border-color:var(--acc);background:var(--card2)}.pairs button.hit{background:#17352a;border-color:var(--ok);color:var(--ok)}.pairs button.miss{border-color:var(--bad)}
+.hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
+.hc{border-radius:3px;background:#1b2230;border:0;padding:0}.hc.f{opacity:.35}.hc.l1{background:#2b4a3b}.hc.l2{background:#2f6b4c}.hc.l3{background:#3a9163}.hc.l4{background:#58c08a}
+.hc.dn{outline:1.5px solid var(--acc);outline-offset:-1.5px}.hc.td{box-shadow:0 0 0 1.5px var(--fg)}
+.scroll-x{overflow-x:auto;padding-bottom:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--mut)}
+.wk{border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden}
+.wk>button{width:100%;display:flex;gap:10px;align-items:center;text-align:left;background:none;border:0;padding:11px 12px;min-height:50px}
+.wk.cur{border-color:var(--acc)}.wk.past>button .wn{color:var(--ok)}
+.wn{font-weight:700;width:34px;flex:none;font-variant-numeric:tabular-nums;color:var(--mut)}
+.wb{padding:0 12px 14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.note{font-size:15px;line-height:1.55}.note b{color:var(--acc)}
+.vl{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:15px}.vl div{min-width:0;overflow-wrap:anywhere}.vl .es{font-weight:600}
+.msgs{display:flex;flex-direction:column;gap:12px}
+.msg{max-width:92%;padding:10px 12px;border-radius:14px;display:flex;flex-direction:column;gap:8px;min-width:0;overflow-wrap:anywhere}
+.msg.u{align-self:flex-end;background:#27324a;border-bottom-right-radius:4px}
+.msg.s{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.e{align-self:center;background:#2e1816;border:1px solid #6a3430;font-size:14px}
+.fix{background:#2a2214;border:1px solid #6b5628;border-radius:10px;padding:8px 10px;font-size:14px}
+.fix.okx{background:#142a21;border-color:#2b5a45}
+.fix ul{margin:6px 0 0;padding-left:18px}.fix s{color:var(--bad)}.fix u{text-decoration:none;color:var(--ok);font-weight:600}
+.qq{font-weight:600;color:var(--acc)}
+.wch{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 12px;font-size:14px;margin:2px 4px 2px 0}
+.wch button{border:0;background:var(--acc);color:var(--acc-ink);border-radius:99px;padding:2px 9px;font-weight:700;font-size:13px}
+.wch button[disabled]{background:var(--line);color:var(--mut)}
+.typing{color:var(--mut);font-style:italic}
+.crow{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);width:100%;text-align:left;min-width:0}
+.crow .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.gbtn{padding:14px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);text-align:left;display:flex;flex-direction:column;gap:2px;min-height:68px}
+.gbtn b{font-size:15px}.gbtn span{font-size:12px;color:var(--mut)}
+.chars{display:flex;gap:4px;flex-wrap:wrap}.chars button{min-width:34px;height:34px;padding:0;border-radius:8px;border:1px solid var(--line);background:var(--card2);font-size:16px}
+details>summary{cursor:pointer;color:var(--mut);font-size:14px;padding:4px 0}
+.dl{display:flex;flex-direction:column;gap:10px}
+.dline{padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;gap:4px}
+.dline.me{border-color:var(--acc)}.dline .who{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grades .btn{flex-direction:column;gap:2px;padding:8px 4px;font-size:13px;min-height:58px}
+.grades .btn small{font-weight:400;font-size:11px}
+.composer{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:8px 0 4px;display:flex;flex-direction:column;gap:8px;z-index:5;border-top:1px solid var(--line)}
+.composer textarea{min-height:48px;max-height:140px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dotd{width:18px;height:18px;border-radius:5px;background:#1b2230;display:block}
+.dotd.part{background:#2b4a3b}.dotd.on{background:var(--ok)}.dotd.now{outline:1.5px solid var(--fg);outline-offset:1px}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+<div id="app">
+  <header id="top">
+    <div class="brand">Español</div>
+    <div id="chips"></div>
+    <button class="ico" data-a="settings" aria-label="Ustawienia">⚙</button>
+  </header>
+  <div id="banner"></div>
+  <main id="main"><div class="card mut">Ładuję postęp…</div></main>
+</div>
+<nav id="nav"><div class="navin">
+  <button data-a="tab" data-t="today">Dziś</button>
+  <button data-a="tab" data-t="plan">Plan</button>
+  <button data-a="tab" data-t="cards">Fiszki<span class="dot" id="dueDot" hidden></span></button>
+  <button data-a="tab" data-t="practice">Ćwicz</button>
+  <button data-a="tab" data-t="sofia">Sofia</button>
+</div></nav>
+<div id="ov" hidden></div>
+<div id="modal" hidden></div>
+<div id="toast" role="status"></div>
+<script>
+'use strict';
+// ====================== DANE: PLAN 52 TYGODNIE (A1→B2) ======================
+// [tytuł tygodnia, temat gramatyki, notatka, temat słownictwa, "es=pl;es=pl;..."]
+const WEEKS=[
+// ---------- A1 (tyg. 1–12) ----------
+["Hola, mundo","Alfabet i wymowa",`Hiszpański czyta się tak, jak się pisze.
+• **j** = twarde „ch” (jamón), **h** jest nieme (hola → „ola”), **ll** ≈ „j/dż” (calle), **ñ** = „ń” (España), **qu** = „k” (queso), **v** = „b”.
+• **c/z** przed e, i = „th” (Hiszpania) lub „s” (Ameryka): gracias, cena.
+• Akcent pada na przedostatnią sylabę, gdy słowo kończy się na samogłoskę, -n, -s; w pozostałych przypadkach na ostatnią. Odstępstwo zaznacza kreska: café, está.
+• Pytania i wykrzyknienia mają odwrócony znak na początku: ¿Cómo estás? ¡Hola!`,"Powitania i pierwsze słowa","hola=cześć;adiós=do widzenia;buenos días=dzień dobry (rano);buenas tardes=dzień dobry (po południu);buenas noches=dobry wieczór / dobranoc;por favor=proszę;gracias=dziękuję;de nada=nie ma za co;sí=tak;no=nie;perdón=przepraszam;mucho gusto=miło mi poznać;¿cómo estás?=jak się masz?;bien=dobrze;hasta luego=do zobaczenia"],
+["Me llamo…","Czasownik SER",`**Ser** = być (cechy stałe: tożsamość, narodowość, zawód).
+yo **soy** · tú **eres** · él/ella/usted **es** · nosotros **somos** · vosotros **sois** · ellos/ustedes **son**
+• Soy Marcel. Soy polaco.
+• ¿De dónde eres? — Soy de Polonia.
+Zaimków osobowych zwykle nie używasz, bo końcówka mówi, kto robi: „Soy polaco”, nie „Yo soy polaco” (chyba że podkreślasz).
+Imię: ¿Cómo te llamas? — Me llamo…`,"Kraje, narodowości, zawody","el nombre=imię / nazwa;me llamo=nazywam się;¿cómo te llamas?=jak masz na imię?;Polonia=Polska;España=Hiszpania;polaco/polaca=Polak / Polka;español/española=Hiszpan / Hiszpanka;el país=kraj;el estudiante=student;el profesor=nauczyciel;el médico=lekarz;el trabajo=praca;¿de dónde eres?=skąd jesteś?;ser de=być z"],
+["Rodzaj i liczba","Rzeczowniki, el/la, un/una",`Rzeczowniki mają rodzaj. Zwykle **-o** = męski (el libro), **-a** = żeński (la casa). Wyjątki: el día, el mapa, la mano. Końcówki -ción, -dad = żeński (la estación, la ciudad).
+Liczba mnoga: samogłoska + **s** (casa → casas), spółgłoska + **es** (ciudad → ciudades), -z → -ces (lápiz → lápices).
+Rodzajniki określone: el, la, los, las. Nieokreślone: un, una, unos, unas.
+Zawsze ucz się słówka razem z rodzajnikiem!`,"Dom, rzeczy, miejsca","el libro=książka;la casa=dom;el coche=samochód;la mesa=stół;la silla=krzesło;la ciudad=miasto;el día=dzień;la calle=ulica;el teléfono=telefon;la mochila=plecak;el perro=pies;el amigo/la amiga=przyjaciel / przyjaciółka"],
+["Estoy aquí","Czasownik ESTAR",`**Estar** = być (położenie, stan chwilowy, samopoczucie).
+yo **estoy** · tú **estás** · él **está** · nosotros **estamos** · vosotros **estáis** · ellos **están**
+• Estoy en casa. • Ella está cansada. • ¿Cómo estás? — Estoy bien.
+**Ser vs estar:** ser = kim/jaki jesteś (z natury), estar = gdzie jesteś / jak się masz teraz.
+Liczby 0–10: cero, uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, diez.`,"Stany, miejsca, liczby 0–10","cansado/cansada=zmęczony / zmęczona;contento/contenta=zadowolony / zadowolona;aquí=tutaj;allí=tam;en=w / na;cerca=blisko;lejos=daleko;uno=jeden;dos=dwa;tres=trzy;cuatro=cztery;cinco=pięć;seis=sześć;siete=siedem;ocho=osiem;nueve=dziewięć;diez=dziesięć;cero=zero"],
+["Mi día","Presente: czasowniki -AR",`Końcówki -ar: **-o, -as, -a, -amos, -áis, -an**.
+hablar: hablo, hablas, habla, hablamos, habláis, hablan.
+• Hablo un poco de español. • Trabajo en Varsovia. • ¿Estudias mucho?
+Przeczenie: **no** przed czasownikiem — No hablo inglés.
+Pytanie: ta sama kolejność co w zdaniu oznajmującym + intonacja i ¿…?`,"Codzienne czynności (-ar)","hablar=mówić;trabajar=pracować;estudiar=uczyć się;caminar=chodzić / iść;comprar=kupować;cocinar=gotować;escuchar=słuchać;mirar=patrzeć;necesitar=potrzebować;bailar=tańczyć;viajar=podróżować;llamar=dzwonić / wołać"],
+["Comer y vivir","Presente: -ER i -IR",`**-er**: -o, -es, -e, -emos, -éis, -en (comer: como, comes, come, comemos, coméis, comen).
+**-ir**: -o, -es, -e, -imos, -ís, -en (vivir: vivo, vives, vive, vivimos, vivís, viven).
+• Como pan con queso. • Vivo en Polonia. • ¿Qué bebes?
+Różnica -er/-ir tylko w „nosotros” i „vosotros”.`,"Jedzenie i picie","comer=jeść;beber=pić;vivir=mieszkać / żyć;escribir=pisać;leer=czytać;abrir=otwierać;el pan=chleb;el agua=woda;el café=kawa;la leche=mleko;la carne=mięso;la fruta=owoc;la sopa=zupa;la cerveza=piwo"],
+["Mi familia","Czasownik TENER",`**Tener** = mieć: tengo, tienes, tiene, tenemos, tenéis, tienen.
+• Tengo veinte años (wiek: „mam lat”). • Tengo hambre / sed / frío / calor / sueño. • Tengo una hermana.
+**tener que + bezokolicznik** = musieć: Tengo que trabajar.
+Liczby 11–20: once, doce, trece, catorce, quince, dieciséis, diecisiete, dieciocho, diecinueve, veinte.`,"Rodzina i wiek","la familia=rodzina;el padre=ojciec;la madre=matka;el hermano/la hermana=brat / siostra;el hijo/la hija=syn / córka;el abuelo/la abuela=dziadek / babcia;el marido=mąż;la mujer=żona / kobieta;el año=rok;tener hambre=być głodnym;tener sed=chcieć pić;tener que=musieć"],
+["¿Cómo es?","Przymiotniki: zgodność",`Przymiotnik zgadza się z rzeczownikiem w rodzaju i liczbie: un chico alto, una chica alta, chicos altos, chicas altas.
+Na -e lub spółgłoskę nie zmienia rodzaju: grande, fácil, joven (mnoga: grandes).
+Zwykle stoi **po** rzeczowniku: una casa grande.
+• Mi hermana es simpática y muy inteligente.
+Bardzo = **muy**; trochę = **un poco**.`,"Opis osób i rzeczy, kolory","alto/alta=wysoki / wysoka;bajo/baja=niski / niska;guapo/guapa=ładny / ładna;simpático/simpática=sympatyczny / sympatyczna;grande=duży;pequeño/pequeña=mały / mała;nuevo/nueva=nowy / nowa;viejo/vieja=stary / stara;rojo=czerwony;azul=niebieski;verde=zielony;negro=czarny;blanco=biały;muy=bardzo"],
+["Mi casa","Hay vs estar",`**Hay** = jest / są (istnienie, coś nowego): Hay un banco cerca. Hay dos camas.
+**Estar** = gdzie jest coś konkretnego, znanego: El banco está en la calle Mayor.
+Przyimki miejsca: en, sobre, debajo de, delante de, detrás de, al lado de, entre, a la derecha / izquierda de.
+Po „hay” nie dajesz rodzajnika określonego: Hay **un** libro / Hay libros (nie „hay el libro”).`,"Dom i meble","la cocina=kuchnia;el baño=łazienka;el dormitorio=sypialnia;el salón=salon;la cama=łóżko;el sofá=kanapa;la ventana=okno;la puerta=drzwi;la habitación=pokój;el piso=mieszkanie;debajo de=pod;encima de=nad / na;al lado de=obok;delante de=przed;detrás de=za"],
+["¿Adónde vas?","IR, HACER i ir a + bezokolicznik",`**Ir** = iść / jechać: voy, vas, va, vamos, vais, van. **Hacer** = robić: hago, haces, hace, hacemos, hacéis, hacen.
+• Voy a casa. • Voy al cine (a + el = **al**). • ¿Qué haces?
+**ir a + bezokolicznik** = zamierzać, bliska przyszłość: Voy a comer. Vamos a viajar mañana.
+Transport: en autobús, en tren, en coche, a pie.`,"Miasto i transport","la estación=dworzec / stacja;el autobús=autobus;el tren=pociąg;el metro=metro;el aeropuerto=lotnisko;el billete=bilet;la parada=przystanek;el taxi=taksówka;la plaza=plac;el banco=bank;el cine=kino;el parque=park;el hotel=hotel;a pie=pieszo"],
+["De compras","Zmiana rdzenia (e→ie, o→ue)",`**e→ie**: querer (quiero, quieres, quiere, queremos, queréis, quieren), preferir, empezar.
+**o→ue**: poder (puedo, puedes, puede, podemos, podéis, pueden), dormir, volver.
+Zmiana dotyczy 1., 2., 3. os. l.poj. i 3. os. l.mn. (nie dotyczy nosotros / vosotros) — to tzw. „but” formy.
+• Quiero un café. • ¿Puedo pagar con tarjeta?
+Liczby: veinte, treinta, cuarenta, cincuenta, sesenta, setenta, ochenta, noventa, cien. Cena: ¿Cuánto cuesta? Cuesta cinco euros.`,"Zakupy i ceny","la tienda=sklep;el supermercado=supermarket;el precio=cena;¿cuánto cuesta?=ile kosztuje?;caro/cara=drogi / droga;barato/barata=tani / tania;el dinero=pieniądze;la tarjeta=karta;pagar=płacić;querer=chcieć / kochać;poder=móc;la bolsa=torba / torebka;el euro=euro;la cuenta=rachunek"],
+["¿Qué hora es?","Godziny, dni, miesiące",`Godzina: ¿Qué hora es? — Es **la** una. Son **las** dos y media. Son las tres menos cuarto. O której? — **A las** ocho.
+Dni tygodnia (małą literą): lunes, martes, miércoles, jueves, viernes, sábado, domingo. „W poniedziałek” = el lunes.
+Miesiące: enero, febrero, marzo, abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre.
+Data: Es el 8 de noviembre.
+Dzień 7 to jednocześnie test całego A1: ser / estar / tener / ir / hacer, presente, rodzaj i liczba, hay, godziny. Cel: swobodnie przedstawić się, zamówić kawę, zapytać o drogę i godzinę.`,"Czas, kalendarz i zwroty A1","la hora=godzina;el minuto=minuta;lunes=poniedziałek;martes=wtorek;miércoles=środa;jueves=czwartek;viernes=piątek;sábado=sobota;domingo=niedziela;hoy=dzisiaj;mañana=jutro;ayer=wczoraj;el mes=miesiąc;la semana=tydzień;no entiendo=nie rozumiem;más despacio=wolniej;¿cómo se dice…?=jak się mówi…?;¿qué significa?=co to znaczy?;no sé=nie wiem;¿dónde está…?=gdzie jest…?"],
+// ---------- A2 (tyg. 13–24) ----------
+["Ayer fui…","Pretérito indefinido: regularne",`Przeszły dokonany (zdarzenie zakończone). **-ar**: -é, -aste, -ó, -amos, -asteis, -aron. **-er/-ir**: -í, -iste, -ió, -imos, -isteis, -ieron.
+hablé, hablaste, habló… / comí, comiste, comió…
+• Ayer trabajé mucho. • El sábado comimos en un restaurante.
+Pisownia w 1. os.: -car → **-qué** (busqué), -gar → **-gué** (llegué), -zar → **-cé** (empecé).
+Sygnały: ayer, anoche, el lunes pasado, hace dos días.`,"Wczoraj i przeszłość","anoche=wczoraj wieczorem;la semana pasada=w zeszłym tygodniu;hace=temu;ya=już;después=potem;antes=wcześniej;primero=najpierw;luego=następnie;llegar=przybywać;terminar=kończyć;empezar=zaczynać;perder=gubić / tracić"],
+["Fin de semana","Pretérito: ser, ir, hacer, tener…",`Nieregularne: **ser / ir**: fui, fuiste, fue, fuimos, fuisteis, fueron (te same!). **hacer**: hice, hiciste, hizo, hicimos, hicisteis, hicieron. **tener**: tuve… **estar**: estuve… **poder**: pude… **venir**: vine… **decir**: dije… **dar**: di, diste, dio… **ver**: vi, viste, vio…
+• Fui a Madrid. • ¿Qué hiciste el domingo? • Estuvimos en la playa.
+„Fue” = był/a albo poszedł/poszła — rozstrzyga kontekst.`,"Weekend i wakacje","el fin de semana=weekend;las vacaciones=wakacje;la playa=plaża;la montaña=góry;el viaje=podróż;la maleta=walizka;visitar=odwiedzać;descansar=odpoczywać;pasear=spacerować;nadar=pływać;sacar fotos=robić zdjęcia;divertirse=bawić się"],
+["En el restaurante","Zaimki dopełnienia: lo, la, los, las",`Dopełnienie bliższe: me, te, **lo / la**, nos, os, **los / las**. Stoją **przed** czasownikiem: Lo compro. La veo. No los tengo. Przy bezokoliczniku mogą być doklejone: Quiero comprarlo.
+Dopełnienie dalsze: me, te, **le**, nos, os, **les**: Le doy el libro.
+• ¿Quieres el café? — Sí, lo quiero.`,"Restauracja","la carta/el menú=menu;el camarero=kelner;la propina=napiwek;pedir=prosić / zamawiać;recomendar=polecać;el plato=danie;el postre=deser;la ensalada=sałatka;el pescado=ryba;el vino=wino;una mesa para dos=stolik dla dwojga;la cuenta, por favor=rachunek poproszę;delicioso=pyszny;picante=ostry"],
+["Mi rutina","Czasowniki zwrotne",`Zwrotne = czynność na sobie: **me, te, se, nos, os, se** + czasownik.
+levantarse: me levanto, te levantas, se levanta, nos levantamos, os levantáis, se levantan.
+• Me despierto a las siete. • Se ducha por la mañana. • ¿A qué hora te acuestas?
+Zaimek stoi przed czasownikiem lub na końcu bezokolicznika: Voy a levantarme = Me voy a levantar.`,"Poranna rutyna","levantarse=wstawać;despertarse=budzić się;ducharse=brać prysznic;vestirse=ubierać się;acostarse=kłaść się spać;lavarse=myć się;peinarse=czesać się;desayunar=jeść śniadanie;almorzar=jeść obiad;cenar=jeść kolację;la mañana=ranek;la noche=noc"],
+["Me gusta","Gustar, encantar, interesar",`**Gustar** zgadza się z tym, co się podoba, nie z osobą: me gusta **el café** (l.poj.), me gustan **los libros** (l.mn.). Osoba: me, te, le, nos, os, les.
+• Me gusta bailar. • ¿Te gustan los gatos? • A mí no me gusta el frío.
+Tak samo: encantar (uwielbiać), interesar, molestar, doler (me duele la cabeza).
+A mí también = ja też. A mí tampoco = ja też nie.`,"Hobby i czas wolny","el pasatiempo=hobby;la música=muzyka;el deporte=sport;el fútbol=piłka nożna;la película=film;el gato=kot;cantar=śpiewać;correr=biegać;jugar=grać / bawić się;dibujar=rysować;la guitarra=gitara;los videojuegos=gry wideo"],
+["Cuando era niño","Pretérito imperfecto",`Imperfecto = opis, zwyczaj, tło w przeszłości. **-ar**: -aba, -abas, -aba, -ábamos, -abais, -aban. **-er/-ir**: -ía, -ías, -ía, -íamos, -íais, -ían.
+Tylko 3 nieregularne: **ser** (era, eras, era, éramos, erais, eran), **ir** (iba, ibas…), **ver** (veía…).
+• De niño vivía en un pueblo. • Siempre jugábamos en la calle.
+Sygnały: siempre, normalmente, todos los días, de niño, a menudo.`,"Dzieciństwo","la infancia=dzieciństwo;de niño=jako dziecko;el pueblo=wieś / miasteczko;la escuela=szkoła;el juguete=zabawka;el recuerdo=wspomnienie;siempre=zawsze;a menudo=często;a veces=czasami;nunca=nigdy;todos los días=codziennie;la abuela=babcia"],
+["Érase una vez","Indefinido vs imperfecto",`**Imperfecto** = tło, opis, powtarzalność: Llovía y hacía frío. **Indefinido** = zdarzenie, które się wydarzyło: Entré y vi a Ana.
+• Cuando llegué, ella dormía. (przyszedłem = zdarzenie, spała = tło)
+• Todos los veranos íbamos a la playa, pero en 2020 no fuimos.
+W opowieści najpierw tło (imperfecto), potem zdarzenia (indefinido).`,"Opowiadanie historii","de repente=nagle;entonces=wtedy;mientras=podczas gdy;por eso=dlatego;al final=w końcu;sin embargo=jednak;el cuento=opowieść / bajka;la historia=historia;pasar=zdarzać się / spędzać;ocurrir=zdarzać się;sorprender=zaskakiwać;recordar=pamiętać"],
+["De rebajas","Porównania i stopniowanie",`**más / menos + przymiotnik + que**: Madrid es más grande que Cracovia. **tan + przym. + como**: tan alto como tú. **tanto/a/os/as + rzecz. + como**.
+Nieregularne: **mejor, peor, mayor, menor**. Superlativo: el más caro, la menos interesante. Końcówka -ísimo: carísimo.
+Na zakupach: ¿Tiene una talla más grande? ¿Me lo puedo probar?`,"Ubrania i zakupy","la ropa=ubrania;la camisa=koszula;los pantalones=spodnie;la falda=spódnica;el vestido=sukienka;los zapatos=buty;la chaqueta=kurtka;la talla=rozmiar;probarse=przymierzać;mejor=lepszy / lepiej;peor=gorszy / gorzej;más barato=tańszy"],
+["Mis planes","Futuro simple",`Futuro = **bezokolicznik + -é, -ás, -á, -emos, -éis, -án**: hablaré, comerás, vivirá.
+Nieregularne rdzenie: tendr-, har-, podr-, querr-, dir-, pondr-, saldr-, vendr-, sabr-.
+Futuro = plany i przypuszczenia (Serán las tres = pewnie jest trzecia).
+• El año que viene aprenderé más. • Mañana tendré tiempo.
+W mowie potocznej częściej: ir a + bezokolicznik.`,"Plany i marzenia","el futuro=przyszłość;el plan=plan;el año que viene=w przyszłym roku;pronto=wkrótce;algún día=kiedyś;la meta=cel;el sueño=marzenie / sen;esperar=mieć nadzieję / czekać;pensar=myśleć / planować;decidir=decydować;prometer=obiecywać;aprender=uczyć się"],
+["De viaje","Por vs para",`**Para**: cel, odbiorca, termin, kierunek (Es para ti. Estudio para viajar. Salgo para Madrid.).
+**Por**: przyczyna, „przez”, wymiana, czas trwania (Gracias por todo. Pasamos por París. Pago diez euros por el billete.).
+• ¿Para qué estudias español? — Por trabajo y para viajar.
+Podróże: reservar una habitación, facturar la maleta, la tarjeta de embarque.`,"Podróże","reservar=rezerwować;el vuelo=lot;la tarjeta de embarque=karta pokładowa;el pasaporte=paszport;la frontera=granica;el turista=turysta;el mapa=mapa;la entrada=wejście / bilet wstępu;la salida=wyjście / wylot;el equipaje=bagaż;el alojamiento=nocleg;perderse=zgubić się"],
+["¿Has estado…?","Pretérito perfecto",`**haber** (he, has, ha, hemos, habéis, han) + imiesłów: -ar → **-ado**, -er/-ir → **-ido**. He hablado. Hemos comido.
+Nieregularne imiesłowy: hecho, dicho, visto, escrito, puesto, vuelto, abierto, roto.
+Użycie: doświadczenia i okres, który trwa: ¿Has estado en España? Esta semana he trabajado mucho. Sygnały: ya, todavía no, nunca, alguna vez, este año.`,"Doświadczenia","la experiencia=doświadczenie;alguna vez=kiedykolwiek;todavía no=jeszcze nie;esta semana=w tym tygodniu;este año=w tym roku;probar=próbować / kosztować;conocer=poznawać / znać;la vez=raz;varias veces=kilka razy;la primera vez=pierwszy raz;lograr=osiągać;intentar=próbować"],
+["Repaso A2","Powtórka A2 (test tygodnia)",`Tydzień testowy: pretérito (indefinido, imperfecto, perfecto), gustar, zwrotne, porównania, futuro, por/para.
+Zrób quizy mieszane, ułóż zdania i porozmawiaj z Sofią w trybie „poprawiaj mnie ostro”.
+Lista kontrolna: umiem opowiedzieć o weekendzie, opisać dzieciństwo, zamówić jedzenie, opisać plany i porównać dwie rzeczy.`,"Przydatne zwroty A2","el error=błąd;la duda=wątpliwość;la respuesta=odpowiedź;la pregunta=pytanie;explicar=wyjaśniać;entender=rozumieć;repetir=powtarzać;olvidar=zapominać;ayudar=pomagać;¿puede repetir, por favor?=czy może pan powtórzyć?;¿qué quiere decir?=co to znaczy?;tener razón=mieć rację"],
+// ---------- B1 (tyg. 25–40) ----------
+["Una receta","Imperativo afirmativo",`**tú**: forma jak 3. os. l.poj. teraźniejszego: habla, come, escribe. Nieregularne: **di, haz, ve, ven, pon, sal, sé, ten**.
+**usted**: końcówki „odwrotne” -e / -a: hable, coma. **vosotros**: -ar → -ad, -er → -ed, -ir → -id (hablad).
+Zaimki doklejone: dime, házmelo, siéntate.
+• Abre la ventana, por favor. • Dime la verdad. • Pon la mesa.`,"Kuchnia i przepisy","la receta=przepis;los ingredientes=składniki;cortar=kroić;mezclar=mieszać;añadir=dodawać;hervir=gotować (wodę);freír=smażyć;hornear=piec;la sal=sól;el aceite=oliwa / olej;el huevo=jajko;la cebolla=cebula;el ajo=czosnek;la sartén=patelnia"],
+["Ten cuidado","Imperativo przeczący",`Zakaz: **no + subjuntivo**: no hables, no comas, no escribas; usted: no hable. Zaimki stoją **przed** czasownikiem: no me lo digas, no te vayas.
+Nieregularne: no hagas, no vayas, no digas, no pongas, no seas, no tengas.
+• No te preocupes. • No me mires así.
+Zdrowie: Me duele…, tengo fiebre / tos / gripe; ¿Qué le pasa?`,"Zdrowie i ciało","la salud=zdrowie;el cuerpo=ciało;la cabeza=głowa;el estómago=żołądek / brzuch;la garganta=gardło;la fiebre=gorączka;la tos=kaszel;el resfriado=przeziębienie;el dolor=ból;la medicina=lekarstwo;la receta médica=recepta;preocuparse=martwić się;doler=boleć;la farmacia=apteka"],
+["Se lo doy","Zaimki: dalsze + bliższe razem",`Kolejność: **dalsze + bliższe** (me / te / le… + lo / la / los / las): Me lo das. Te la explico.
+**le / les + lo → se lo**: Se lo digo (a él / a ella / a usted / a ellos).
+Doklejanie: Quiero dár**selo**. Dá**melo**.
+• ¿Me prestas el libro? — Sí, te lo presto.`,"Dom, usługi, naprawy","arreglar=naprawiać;romper=psuć / rozbijać;funcionar=działać;el problema=problem;la avería=awaria;el técnico=technik;la factura=faktura;la garantía=gwarancja;el alquiler=najem / czynsz;el vecino=sąsiad;prestar=pożyczać (komuś);devolver=oddawać;entregar=doręczać;enviar=wysyłać"],
+["Me gustaría…","Condicional (condicional simple)",`Condicional = **bezokolicznik + -ía, -ías, -ía, -íamos, -íais, -ían**; te same nieregularne rdzenie co w futuro (tendr-, har-, podr-…).
+Użycie: uprzejme prośby (¿Podrías ayudarme?), rady (Deberías descansar), życzenia (Me gustaría viajar), hipotezy.
+• Yo en tu lugar iría al médico. • ¿Podría hablar más despacio?`,"Uprzejmość, prośby, rady","deber=powinien / być winnym;me gustaría=chciałbym;¿podría…?=czy mógłby…?;yo en tu lugar=na twoim miejscu;la sugerencia=sugestia;aconsejar=radzić;el favor=przysługa;disculpar=wybaczać;molestar=przeszkadzać;agradecer=być wdzięcznym;la oferta=oferta;aceptar=przyjmować;rechazar=odrzucać"],
+["Quiero que…","Presente de subjuntivo: formy",`Subjuntivo to tryb (życzenia, wątpliwości, emocje). Tworzenie: **yo w presente − o** + „odwrotne” końcówki: -ar → **-e, -es, -e, -emos, -éis, -en**; -er/-ir → **-a, -as, -a, -amos, -áis, -an**.
+hablar → hable; comer → coma; tener → tenga; hacer → haga. Nieregularne: ser (sea), estar (esté), ir (vaya), saber (sepa), dar (dé), haber (haya).
+• Quiero que vengas. • Espero que tengas tiempo. • Es importante que estudies.
+Zmiana podmiotu + „que” → subjuntivo. Ten sam podmiot → bezokolicznik.`,"Życzenia i oczekiwania","desear=życzyć sobie;esperar que=mieć nadzieję, że;querer que=chcieć, żeby;pedir que=prosić, żeby;es importante que=to ważne, żeby;es necesario que=trzeba, żeby;ojalá=oby;la esperanza=nadzieja;el deseo=życzenie;la condición=warunek;permitir=pozwalać;prohibir=zabraniać"],
+["Me alegro de que…","Subjuntivo: emocje i oceny",`Po wyrażeniach emocji i oceny + **que** + subjuntivo: me alegro de que, me molesta que, temo que, es una pena que, es raro que, me sorprende que.
+• Me alegro de que estés aquí. • Es una pena que no puedas venir. • Me da miedo que llueva.
+Ten sam podmiot → bezokolicznik: Me alegro de verte.`,"Uczucia i emocje","alegrarse=cieszyć się;enfadarse=złościć się;temer=obawiać się;el miedo=strach;la alegría=radość;la tristeza=smutek;la sorpresa=zaskoczenie;preocupado/preocupada=zmartwiony / zmartwiona;orgulloso/orgullosa=dumny / dumna;celoso/celosa=zazdrosny / zazdrosna;estar harto=mieć dość;la pena=żal / szkoda"],
+["Creo que…","Indicativo vs subjuntivo",`**Pewność → indicativo**: creo que, pienso que, es verdad que, está claro que. **Wątpliwość / zaprzeczenie → subjuntivo**: no creo que, dudo que, no es verdad que, es posible que, quizás, tal vez.
+• Creo que tiene razón. • No creo que tenga razón. • Quizás venga mañana.
+Opinie: En mi opinión…, Me parece que…, Estoy de acuerdo / No estoy de acuerdo.`,"Opinie i dyskusja","la opinión=opinia;la razón=powód / rację;estar de acuerdo=zgadzać się;dudar=wątpić;quizás=może;tal vez=być może;es posible=możliwe;la verdad=prawda;la mentira=kłamstwo;parecer=wydawać się;en mi opinión=moim zdaniem;discutir=dyskutować / kłócić się"],
+["Mi carrera","Czasowniki z przyimkami",`pensar **en**, soñar **con**, depender **de**, acordarse **de**, confiar **en**, casarse **con**, enamorarse **de**, tratar **de**, empezar **a**, terminar **de**, dejar **de**, volver **a** + bezokolicznik.
+• Sueño con viajar. • Dejé de fumar. • Vuelvo a intentarlo.
+Praca: el currículum, la entrevista, el sueldo, el contrato, el jefe, el equipo.`,"Praca i kariera","el empleo=zatrudnienie;la empresa=firma;el sueldo=pensja;el contrato=umowa;la entrevista=rozmowa kwalifikacyjna;el currículum=CV;el jefe/la jefa=szef / szefowa;el equipo=zespół;la reunión=spotkanie;el horario=godziny pracy;ascender=awansować;despedir=zwalniać;dimitir=rezygnować;el compañero=współpracownik"],
+["Ya había…","Pluscuamperfecto",`**había, habías, había, habíamos, habíais, habían + imiesłów** = czas zaprzeszły: coś, co zdarzyło się **przed** innym momentem w przeszłości.
+• Cuando llegué, ya se había ido. • No sabía que habías estado aquí. • Nunca había visto el mar.
+Sygnały: ya, todavía no, antes de, nunca, hasta entonces.`,"Wspomnienia","el pasado=przeszłość;la memoria=pamięć;olvidarse de=zapomnieć o;echar de menos=tęsknić;la juventud=młodość;la época=epoka;antiguamente=dawniej;hasta entonces=do tamtej pory;la costumbre=zwyczaj;cambiar=zmieniać (się);crecer=dorastać;el recuerdo de=wspomnienie o"],
+["Describir con precisión","Zdania względne",`**que** (najczęstsze): El libro que leo. **quien / quienes** (osoby, po przyimku): La chica con quien hablo. **donde**: La ciudad donde vivo. **el que / la que / lo que**: Lo que dices es verdad. **cuyo**: El hombre cuya casa vi.
+Z subjuntivo, gdy rzecz jest nieznana lub nie istnieje: Busco a alguien que hable ruso.`,"Opis i definicje","el objeto=przedmiot;la característica=cecha;definir=definiować;describir=opisywać;parecerse a=być podobnym do;el aspecto=wygląd / aspekt;la forma=kształt / sposób;el tamaño=rozmiar;el material=materiał;útil=użyteczny;raro/rara=dziwny / dziwna;diferente=inny"],
+["Se dice…","Strona bierna i „se” bezosobowe",`**Se** bezosobowe / bierne: Se habla español. Se venden pisos (zgoda z rzeczownikiem).
+**ser + imiesłów**: La casa fue construida en 1900.
+Se dice que… = podobno. Uno + 3. os.: Uno nunca sabe.
+Media: la noticia, el periódico, el titular, la prensa, el reportaje.`,"Media i wiadomości","la noticia=wiadomość;el periódico=gazeta;el titular=nagłówek;la prensa=prasa;el reportaje=reportaż;el artículo=artykuł;el periodista=dziennikarz;la televisión=telewizja;la emisora=stacja radiowa;publicar=publikować;informar=informować;la red social=portal społecznościowy"],
+["Si llueve…","Zdania warunkowe typu I",`**Si + presente → presente / futuro / imperativo**: Si llueve, me quedo en casa. Si tengo tiempo, te llamaré. Si puedes, ven.
+Po „si” nie używamy futuro!
+Warunek ogólny: Si calientas hielo, se derrite.
+Technologia: la aplicación, el ordenador, la contraseña, descargar, conectar.`,"Technologia","la aplicación=aplikacja;el ordenador=komputer;el móvil=telefon komórkowy;la contraseña=hasło;descargar=pobierać;conectarse=łączyć się;la pantalla=ekran;el correo=poczta / mail;el archivo=plik;guardar=zapisywać / chować;instalar=instalować;la batería=bateria;el wifi=wifi;actualizar=aktualizować"],
+["Si tuviera…","Si + imperfecto de subjuntivo",`Warunek nierealny lub mało prawdopodobny: **Si + imperfecto de subjuntivo → condicional**. Si tuviera dinero, viajaría. Si fuera tú, lo haría. Si pudiera, me mudaría.
+Formacja: 3. os. l.mn. pretérito − **ron** + **-ra, -ras, -ra, -ramos, -rais, -ran**: hablaron → hablara; tuvieron → tuviera; fueron → fuera.`,"Marzenia i hipotezy","la lotería=loteria;ganar=wygrywać / zarabiać;mudarse=przeprowadzać się;el extranjero=zagranica;la oportunidad=okazja;imaginar=wyobrażać sobie;la fortuna=fortuna;el riesgo=ryzyko;arriesgar=ryzykować;realizar=realizować;el objetivo=cel;la ilusión=nadzieja / zapał"],
+["Si yo fuera tú","Imperfecto de subjuntivo w użyciu",`Sekwencja czasów: **Quiero que vengas** → **Quería que vinieras**. Ojalá tuviera… (życzenie nierealne). **Como si + imperfecto**: Habla como si fuera experto. Uprzejmie: Quisiera un café (querer → quisiera).
+• Te aconsejé que descansaras. • Me pidió que lo ayudara.`,"Rady i namowy","aconsejar=radzić;sugerir=sugerować;insistir=nalegać;exigir=żądać;convencer=przekonywać;obligar=zmuszać;advertir=ostrzegać;la advertencia=ostrzeżenie;por si acaso=na wszelki wypadek;en caso de que=w razie gdyby;a menos que=chyba że;con tal de que=pod warunkiem że"],
+["Me dijo que…","Mowa zależna",`Zmiany czasów: presente → imperfecto („Voy” → dijo que **iba**), futuro → condicional („Iré” → dijo que **iría**), perfecto → pluscuamperfecto.
+Pytania: Preguntó **si**… Rozkazy: Me dijo que **viniera** (imperfecto de subj.).
+Deixis: hoy → ese día; mañana → al día siguiente; aquí → allí.
+Czasowniki: decir, contar, preguntar, responder, afirmar, explicar.`,"Relacje, plotki, wiadomości","contar=opowiadać / liczyć;preguntar=pytać;responder=odpowiadać;afirmar=twierdzić;negar=zaprzeczać;explicar=wyjaśniać;comentar=komentować;anunciar=ogłaszać;el rumor=plotka;chismorrear=plotkować;confesar=wyznawać;el mensaje=wiadomość"],
+["Repaso B1","Powtórka B1 (test tygodnia)",`Tydzień testowy: imperativo, subjuntivo (presente i imperfecto), condicional, zdania z „si”, mowa zależna, zdania względne, strona bierna.
+Sofia w trybie „ostrym”: 10 minut rozmowy bez polskiego. Jeśli quizy wychodzą >70%, możesz iść dalej.`,"Spójniki i zwroty B1","sin duda=bez wątpienia;a pesar de=pomimo;en cambio=natomiast;por lo tanto=w związku z tym;aunque=chociaż;mientras tanto=tymczasem;de todos modos=tak czy inaczej;en realidad=w rzeczywistości;es decir=czyli;por ejemplo=na przykład;sobre todo=przede wszystkim;en general=ogólnie"],
+// ---------- B2 (tyg. 41–52) ----------
+["Cuando sea mayor","Subjuntivo w zdaniach okolicznikowych",`**Cuando, en cuanto, hasta que, después de que, antes de que** + subjuntivo, gdy mowa o przyszłości: Cuando llegues, llámame. Antes de que te vayas…
+**Para que + subj.**: Te lo explico para que lo entiendas.
+**Aunque**: + indicativo (fakt) / + subjuntivo (możliwość): Aunque llueva, saldré.`,"Cele i czas (spójniki)","en cuanto=jak tylko;hasta que=aż;antes de que=zanim;después de que=po tym jak;para que=żeby;a fin de que=aby;siempre que=o ile / za każdym razem gdy;a no ser que=chyba że;por mucho que=choćby nie wiem jak;por más que=choćby;dado que=skoro;con tal de que=pod warunkiem"],
+["Espero que hayas…","Pretérito perfecto de subjuntivo",`**haya, hayas, haya, hayamos, hayáis, hayan + imiesłów**: Espero que hayas dormido bien. No creo que haya llegado. Me alegro de que hayáis venido.
+Odnosi się do czynności zakończonej względem teraźniejszości lub przyszłości: Cuando hayas terminado, avísame.`,"Ocena i spekulacje","la suposición=przypuszczenie;suponer=przypuszczać;probablemente=prawdopodobnie;seguramente=zapewne;puede que=możliwe, że;a lo mejor=może (+ indicativo);aparentemente=pozornie;evidentemente=oczywiście;dudoso=wątpliwy;cierto=pewny / prawdziwy;seguro=pewny / bezpieczny;aparente=pozorny"],
+["Hipótesis y certeza","Czasy złożone, hipotezy",`Ćwiczymy: perfecto, pluscuamperfecto, **futuro perfecto** (habré terminado = skończę / pewnie skończyłem), **condicional perfecto** (habría ido = poszedłbym).
+Hipotezy o przeszłości: Serían las diez (pewnie była dziesiąta).
+Zgoda imiesłowu tylko przy ser / estar / tener: Tengo escritas tres cartas.`,"Niepewność i spekulacje","debería haber=powinienem był;podría haber=mógłbym był;habría sido=byłoby;sería=byłoby;supongo que=przypuszczam, że;imagino que=wyobrażam sobie, że;¿quién sabe?=kto wie?;a saber=kto wie;lo más probable=najbardziej prawdopodobne;es dudoso que=wątpliwe, żeby;no cabe duda=nie ma wątpliwości;tal vez=być może"],
+["Llevo estudiando…","Perífrasis verbales",`**llevar + gerundio** (od jak dawna): Llevo un año estudiando español. **seguir + gerundio**: Sigo trabajando. **acabar de + inf.**: Acabo de llegar. **soler + inf.**: Suelo levantarme temprano. Także: estar a punto de, ponerse a, volver a, dejar de, tener que, haber de, deber.
+Gerundio: -ando, -iendo (hablando, comiendo).`,"Życie codzienne (zaawansowane)","soler=zwykle coś robić;acabar de=właśnie coś zrobić;ponerse a=zacząć coś robić;seguir=kontynuować;estar a punto de=mieć właśnie zrobić;llevar=nosić / trwać;mantener=utrzymywać;la rutina=rutyna;acostumbrarse=przyzwyczaić się;soportar=znosić;aguantar=wytrzymywać;echar=wyrzucać / rzucać"],
+["Si hubiera sabido…","Zdania warunkowe typu III",`Nierealne w przeszłości: **Si + pluscuamperfecto de subjuntivo → condicional perfecto**: Si hubiera estudiado más, habría aprobado. Si lo hubiera sabido, te habría llamado.
+Mieszane: Si hubiera nacido en España, hablaría mejor.
+hubiera = haber w imperfecto subj. (hubiera, hubieras, hubiera, hubiéramos, hubierais, hubieran).`,"Żal i nierealne wydarzenia","lamentar=żałować;arrepentirse=żałować (czegoś);el arrepentimiento=skrucha;la oportunidad perdida=stracona okazja;perder el tren=przegapić okazję;ojalá hubiera=obym był;qué lástima=jaka szkoda;culpar=obwiniać;la culpa=wina;disculparse=przepraszać;reconocer=przyznawać;por desgracia=niestety"],
+["Sin embargo","Spójniki dyskursu",`Zestawianie: sin embargo, no obstante, en cambio, por el contrario. Skutek: por lo tanto, por consiguiente, así que. Dodawanie: además, asimismo, incluso. Przyczyna: ya que, puesto que, dado que. Cel: con el fin de.
+Struktura wypowiedzi: en primer lugar, por otra parte, en conclusión, en resumen.
+Używaj w tekstach pisanych i formalnych wypowiedziach.`,"Argumentacja","no obstante=niemniej jednak;por consiguiente=w konsekwencji;asimismo=podobnie / również;además=ponadto;ya que=ponieważ;puesto que=skoro;en primer lugar=po pierwsze;por otra parte=z drugiej strony;en conclusión=podsumowując;en resumen=w skrócie;con el fin de=w celu;el argumento=argument"],
+["Ser y estar a fondo","Ser / estar: zmiana znaczenia",`ser listo (bystry) / estar listo (gotowy); ser aburrido (nudny) / estar aburrido (znudzony); ser malo (zły) / estar malo (chory); ser rico (bogaty) / estar rico (smaczny); ser abierto (otwarty charakter) / estar abierto (otwarty sklep).
+Wynik czynności: La puerta está cerrada. Zdarzenia: La fiesta es en mi casa (ser = miejsce wydarzenia).`,"Charakter i stan","ser listo=być bystrym;estar listo=być gotowym;ser aburrido=być nudnym;estar aburrido=być znudzonym;ser malo=być złym;estar malo=być chorym;ser rico=być bogatym;estar rico=być smacznym;ser orgulloso=być dumnym z natury;estar seguro=być pewnym;ser cuidadoso=być ostrożnym;estar atento=być uważnym"],
+["Lo que importa","Lo + przymiotnik, lo que, cuyo",`**Lo + przym.** = to, co jest…: lo importante, lo mejor, lo bueno. **Lo que** = to, co: Lo que dices me preocupa. **Lo de** = sprawa: lo de ayer.
+**Cuyo / cuya / cuyos / cuyas** (którego, której): Es un autor cuyos libros leo. **El cual / la cual / los cuales** (formalnie). **Lo cual** = co (odnosi się do całego zdania).`,"Abstrakcja i idee","lo importante=to, co ważne;lo mejor=to, co najlepsze;lo peor=to, co najgorsze;lo difícil=to, co trudne;lo fundamental=to, co fundamentalne;el concepto=pojęcie;la idea=pomysł;el valor=wartość;la libertad=wolność;la justicia=sprawiedliwość;la igualdad=równość;el sentido=sens"],
+["Debate","Debata i perswazja",`Zwroty debaty: Estoy a favor de / en contra de…; Desde mi punto de vista…; Lo que quiero decir es…; Reconozco que…, pero…; Por un lado…, por otro…; Dicho esto…
+Miękkie sprzeciwy: Entiendo lo que dices, aunque…; Tienes parte de razón, pero…; No creo que sea tan sencillo (subjuntivo łagodzi).`,"Debata i polityka","estar a favor de=być za;estar en contra de=być przeciw;el punto de vista=punkt widzenia;la postura=stanowisko;apoyar=popierać;criticar=krytykować;el debate=debata;la política=polityka;el gobierno=rząd;la ley=prawo / ustawa;la sociedad=społeczeństwo;la economía=gospodarka"],
+["Por la presente","Rejestr formalny i korespondencja",`Mail / list formalny: Estimado/a señor/a: … Me dirijo a usted para… Le agradecería que… Adjunto le envío… Quedo a su disposición. Atentamente / Un cordial saludo.
+Używaj **usted**, subjuntivo i condicional dla grzeczności.
+Biznes: la propuesta, el presupuesto, el plazo, el acuerdo.`,"Biznes i formalności","estimado=szanowny;me dirijo a usted=zwracam się do pana / pani;le agradecería que=byłbym wdzięczny, gdyby;adjunto=w załączeniu;quedo a su disposición=pozostaję do dyspozycji;atentamente=z poważaniem;la propuesta=propozycja;el presupuesto=budżet / kosztorys;el plazo=termin;el acuerdo=umowa / porozumienie;la solicitud=wniosek;confirmar=potwierdzać"],
+["Hablar como un nativo","Idiomy i regionalizmy",`Idiomy: estar en las nubes (bujać w obłokach), costar un ojo de la cara (kosztować majątek), meter la pata (palnąć głupstwo), tomar el pelo (nabierać kogoś), estar hecho polvo (być wykończonym).
+Potocznie (Hiszpania): vale, guay, tío, chaval, mogollón. Ameryka Łacińska: ustedes zamiast vosotros, carro / coche, celular / móvil, platicar / charlar. Voseo: vos sos (Argentyna).`,"Idiomy i potoczny","meter la pata=palnąć głupstwo;tomar el pelo=nabierać kogoś;estar hecho polvo=być wykończonym;costar un ojo de la cara=kosztować majątek;estar en las nubes=bujać w obłokach;ponerse las pilas=wziąć się do roboty;dar la lata=zawracać głowę;ser pan comido=być bułką z masłem;vale=ok (Hiszpania);guay=super;mogollón=mnóstwo;el chaval=chłopak"],
+["Final B2","Egzamin B2 i co dalej",`Tydzień finału. Zrób pełen przegląd: 3 quizy mieszane po 15 pytań, rozmowa z Sofią 15 minut w trybie „ostrym” (bez polskiego), napisz 150 słów (mail formalny) i poproś Sofię o korektę.
+Dalej: DELE B2 / SIELE, książki, seriale po hiszpańsku, rozmowy z native’ami (italki, tandem).`,"Powtórka B2","el examen=egzamin;aprobar=zdać;suspender=oblać;el nivel=poziom;la fluidez=płynność;dominar=opanowywać;perfeccionar=doskonalić;el acento=akcent;la pronunciación=wymowa;la comprensión=rozumienie;la expresión=wyrażenie;el logro=osiągnięcie"]
+];
+const NW=WEEKS.length, ND=NW*7;
+const levelOfWeek=w=>w<=12?1:w<=24?2:w<=40?3:4;
+const LVN=['','A1','A2','B1','B2'];
+const LVFULL=['','A1 — początki','A2 — podstawy','B1 — samodzielność','B2 — swoboda'];
+const DAYFOCUS=[
+ {t:'Gramatyka: nowy temat',note:'full',words:null,task:'Przeczytaj notatkę i powiedz na głos 3 przykłady.'},
+ {t:'Słownictwo, część 1',note:'fold',words:'a',task:'Odsłuchaj słówka i powiedz każde z przykładowym zdaniem.'},
+ {t:'Słownictwo, część 2',note:'fold',words:'b',task:'Odsłuchaj słówka. Spróbuj połączyć je z częścią 1 w jednym zdaniu.'},
+ {t:'Gramatyka: utrwalenie',note:'full',words:null,task:'Ułóż 3 własne zdania z dzisiejszym tematem i wyślij je Sofii.'},
+ {t:'Słownictwo w użyciu',note:'fold',words:'all',task:'Użyj 5 słówek z listy w zdaniach — na głos lub w rozmowie z Sofią.'},
+ {t:'Rozmówka',note:'fold',words:null,task:'Przećwicz rozmówkę na role (zakładka Ćwicz) i odegraj ją z Sofią.'},
+ {t:'Test tygodnia',note:'fold',words:null,task:'Dzisiejszy quiz sprawdza cały tydzień. Powtórz notatkę, jeśli coś się chwieje.'}
+];
+
+// ====================== ZDANIA (luki, układanki, słuchanie) ======================
+// "Zdanie z [luką]|tłumaczenie|poziom 1–4"
+const SENT_RAW=`Yo [soy] de Polonia.|Jestem z Polski.|1
+¿Cómo [te] llamas?|Jak masz na imię?|1
+Mi madre [es] médica.|Moja mama jest lekarką.|1
+Nosotros [estamos] en casa.|Jesteśmy w domu.|1
+Ella [tiene] dos hermanos.|Ona ma dwóch braci.|1
+Ellos [hablan] español muy bien.|Oni mówią bardzo dobrze po hiszpańsku.|1
+Yo [como] pan con queso.|Jem chleb z serem.|1
+¿Dónde [vives]?|Gdzie mieszkasz?|1
+Hoy [voy] al trabajo en autobús.|Dziś jadę do pracy autobusem.|1
+[Hay] un banco cerca de aquí.|Niedaleko stąd jest bank.|1
+La casa es [grande].|Dom jest duży.|1
+Tengo [veinte] años.|Mam dwadzieścia lat.|1
+Quiero [un] café, por favor.|Poproszę kawę.|1
+¿A qué [hora] es la reunión?|O której jest spotkanie?|1
+Los libros [son] nuevos.|Książki są nowe.|1
+Vosotros [sois] mis amigos.|Jesteście moimi przyjaciółmi.|1
+No [puedo] hablar ahora.|Nie mogę teraz rozmawiać.|1
+¿Cuánto [cuesta] este libro?|Ile kosztuje ta książka?|1
+Mañana [vamos] a viajar.|Jutro jedziemy w podróż.|1
+Ella [bebe] agua todos los días.|Ona pije wodę codziennie.|1
+Ayer [trabajé] hasta las ocho.|Wczoraj pracowałem do ósmej.|2
+El sábado [fuimos] al cine.|W sobotę poszliśmy do kina.|2
+Anoche [comí] pizza.|Wczoraj wieczorem jadłem pizzę.|2
+Cuando era niño, [jugaba] en la calle.|Jako dziecko grałem na ulicy.|2
+Me [gustan] los gatos.|Lubię koty.|2
+Todos los días me [levanto] a las siete.|Codziennie wstaję o siódmej.|2
+Mañana [tendré] más tiempo.|Jutro będę miał więcej czasu.|2
+Mi hermano es [más] alto que yo.|Mój brat jest wyższy ode mnie.|2
+Este regalo es [para] ti.|Ten prezent jest dla ciebie.|2
+¿Has [estado] alguna vez en Madrid?|Byłeś kiedyś w Madrycie?|2
+No lo [he] visto todavía.|Jeszcze tego nie widziałem.|2
+Ella [se] ducha por la mañana.|Ona bierze prysznic rano.|2
+Quiero el café y [lo] quiero ahora.|Chcę kawę i chcę ją teraz.|2
+¿Qué [hiciste] el domingo?|Co robiłeś w niedzielę?|2
+Mientras yo [cocinaba], ella leía.|Gdy ja gotowałem, ona czytała.|2
+Gracias [por] la ayuda.|Dziękuję za pomoc.|2
+Voy a [comprar] unos zapatos.|Kupię sobie buty.|2
+Siempre [íbamos] a la playa en verano.|Latem zawsze jeździliśmy na plażę.|2
+[Dime] la verdad, por favor.|Powiedz mi prawdę, proszę.|3
+No [hables] tan rápido.|Nie mów tak szybko.|3
+Me gustaría [viajar] a México.|Chciałbym pojechać do Meksyku.|3
+Quiero que [vengas] a mi fiesta.|Chcę, żebyś przyszedł na moją imprezę.|3
+Si llueve, me [quedo] en casa.|Jeśli będzie padać, zostanę w domu.|3
+Creo que [tiene] razón.|Myślę, że ma rację.|3
+No creo que [tenga] razón.|Nie sądzę, żeby miał rację.|3
+Cuando llegué, ya se [había] ido.|Kiedy przyszedłem, już poszedł.|3
+Me alegro de que [estés] aquí.|Cieszę się, że tu jesteś.|3
+Se [habla] español en muchos países.|W wielu krajach mówi się po hiszpańsku.|3
+La chica [que] vive aquí es mi prima.|Dziewczyna, która tu mieszka, to moja kuzynka.|3
+Me dijo que [vendría] mañana.|Powiedział mi, że przyjdzie jutro.|3
+Si tuviera dinero, [viajaría] más.|Gdybym miał pieniądze, podróżowałbym więcej.|3
+Es importante que [estudies] cada día.|Ważne, żebyś uczył się codziennie.|3
+¿Me [lo] das?|Dasz mi to?|3
+Dejé [de] fumar hace un año.|Rzuciłem palenie rok temu.|3
+Cuando [termines], llámame.|Kiedy skończysz, zadzwoń do mnie.|4
+Si hubiera estudiado más, [habría] aprobado.|Gdybym więcej się uczył, zdałbym.|4
+Llevo un año [estudiando] español.|Od roku uczę się hiszpańskiego.|4
+Aunque [llueva], saldré a correr.|Choćby padało, wyjdę pobiegać.|4
+Espero que [hayas] dormido bien.|Mam nadzieję, że dobrze spałeś.|4
+Lo [que] dices es muy interesante.|To, co mówisz, jest bardzo interesujące.|4
+No [obstante], seguiremos adelante.|Niemniej jednak będziemy kontynuować.|4
+Acabo [de] llegar a casa.|Właśnie wróciłem do domu.|4
+Ojalá [tuviera] más tiempo libre.|Obym miał więcej wolnego czasu.|4
+Te lo explico para que lo [entiendas].|Wyjaśnię ci to, żebyś zrozumiał.|4
+Es un autor [cuyos] libros leo siempre.|To autor, którego książki zawsze czytam.|4
+[Dado] que no hay tiempo, lo dejamos.|Skoro nie ma czasu, odpuszczamy.|4
+Antes de que te [vayas], dime algo.|Zanim pójdziesz, powiedz mi coś.|4
+Suelo [levantarme] muy temprano.|Zazwyczaj wstaję bardzo wcześnie.|4`;
+
+// ====================== ODMIANA CZASOWNIKÓW ======================
+// [bezokolicznik, polskie, od którego tygodnia]
+const VERBS=[['ser','być (cecha)',2],['estar','być (stan, miejsce)',4],['hablar','mówić',5],['trabajar','pracować',5],['comer','jeść',6],['beber','pić',6],['vivir','mieszkać',6],['escribir','pisać',6],['tener','mieć',7],['ir','iść / jechać',10],['hacer','robić',10],['querer','chcieć',11],['poder','móc',11],['venir','przychodzić',13],['decir','mówić / powiedzieć',13],['empezar','zaczynać',13],['poner','kłaść / stawiać',14],['salir','wychodzić',14],['saber','wiedzieć',14],['ver','widzieć',14],['dar','dawać',14],['dormir','spać',15],['pedir','prosić / zamawiać',15],['volver','wracać',15],['jugar','grać',17],['conocer','znać / poznawać',18],['pensar','myśleć',21],['preferir','woleć',25],['entender','rozumieć',25],['recordar','pamiętać',25],['encontrar','znajdować',25],['repetir','powtarzać',25]];
+const SC={querer:'ie',poder:'ue',empezar:'ie',dormir:'ue',pedir:'i',volver:'ue',jugar:'ju',pensar:'ie',preferir:'ie',entender:'ie',recordar:'ue',encontrar:'ue',repetir:'i'};
+const SER_T=['fui','fuiste','fue','fuimos','fuisteis','fueron'];
+const IRR={
+ ser:{p:['soy','eres','es','somos','sois','son'],t:SER_T,i:['era','eras','era','éramos','erais','eran'],s:['sea','seas','sea','seamos','seáis','sean']},
+ estar:{p:['estoy','estás','está','estamos','estáis','están'],t:['estuve','estuviste','estuvo','estuvimos','estuvisteis','estuvieron'],s:['esté','estés','esté','estemos','estéis','estén']},
+ ir:{p:['voy','vas','va','vamos','vais','van'],t:SER_T,i:['iba','ibas','iba','íbamos','ibais','iban'],s:['vaya','vayas','vaya','vayamos','vayáis','vayan']},
+ tener:{p:['tengo','tienes','tiene','tenemos','tenéis','tienen'],t:['tuve','tuviste','tuvo','tuvimos','tuvisteis','tuvieron'],f:'tendr'},
+ hacer:{y:'hago',t:['hice','hiciste','hizo','hicimos','hicisteis','hicieron'],f:'har'},
+ poder:{t:['pude','pudiste','pudo','pudimos','pudisteis','pudieron'],f:'podr'},
+ querer:{t:['quise','quisiste','quiso','quisimos','quisisteis','quisieron'],f:'querr'},
+ venir:{p:['vengo','vienes','viene','venimos','venís','vienen'],t:['vine','viniste','vino','vinimos','vinisteis','vinieron'],f:'vendr'},
+ decir:{p:['digo','dices','dice','decimos','decís','dicen'],t:['dije','dijiste','dijo','dijimos','dijisteis','dijeron'],f:'dir'},
+ poner:{y:'pongo',t:['puse','pusiste','puso','pusimos','pusisteis','pusieron'],f:'pondr'},
+ salir:{y:'salgo',f:'saldr'},
+ saber:{p:['sé','sabes','sabe','sabemos','sabéis','saben'],t:['supe','supiste','supo','supimos','supisteis','supieron'],f:'sabr',s:['sepa','sepas','sepa','sepamos','sepáis','sepan']},
+ dar:{p:['doy','das','da','damos','dais','dan'],t:['di','diste','dio','dimos','disteis','dieron'],s:['dé','des','dé','demos','deis','den']},
+ ver:{p:['veo','ves','ve','vemos','veis','ven'],t:['vi','viste','vio','vimos','visteis','vieron'],i:['veía','veías','veía','veíamos','veíais','veían']},
+ conocer:{y:'conozco'}
+};
+const PRON=['yo','tú','él / ella / usted','nosotros','vosotros','ellos / ustedes'];
+const TENSES=[{k:'p',n:'presente',w:1},{k:'t',n:'pretérito indefinido',w:13},{k:'i',n:'imperfecto',w:18},{k:'f',n:'futuro',w:21},{k:'c',n:'condicional',w:28},{k:'s',n:'subjuntivo presente',w:29}];
+const EN={
+ p:{ar:['o','as','a','amos','áis','an'],er:['o','es','e','emos','éis','en'],ir:['o','es','e','imos','ís','en']},
+ t:{ar:['é','aste','ó','amos','asteis','aron'],er:['í','iste','ió','imos','isteis','ieron'],ir:['í','iste','ió','imos','isteis','ieron']},
+ i:{ar:['aba','abas','aba','ábamos','abais','aban'],er:['ía','ías','ía','íamos','íais','ían']},
+ f:['é','ás','á','emos','éis','án'],c:['ía','ías','ía','íamos','íais','ían'],
+ s:{ar:['e','es','e','emos','éis','en'],er:['a','as','a','amos','áis','an']}
+};
+function conj(inf,tn){
+ const typ=inf.slice(-2), st=inf.slice(0,-2), irr=IRR[inf]||{}, sc=SC[inf];
+ const chg=s=>sc==='ie'?s.replace(/e([^e]*)$/,'ie$1'):sc==='ue'?s.replace(/o([^o]*)$/,'ue$1'):sc==='ju'?s.replace(/u([^u]*)$/,'ue$1'):sc==='i'?s.replace(/e([^e]*)$/,'i$1'):s;
+ if(tn==='p'){ if(irr.p) return irr.p; return EN.p[typ].map((e,k)=>{ if(k===0&&irr.y) return irr.y; return ((sc&&[0,1,2,5].includes(k))?chg(st):st)+e; }); }
+ if(tn==='t'){ if(irr.t) return irr.t; return EN.t[typ].map((e,k)=>{ let s=st;
+   if(sc&&typ==='ir'&&(k===2||k===5)) s=sc==='ue'?st.replace(/o([^o]*)$/,'u$1'):st.replace(/e([^e]*)$/,'i$1');
+   if(k===0&&typ==='ar'){ if(inf.endsWith('car')) return st.slice(0,-1)+'qué'; if(inf.endsWith('gar')) return st+'ué'; if(inf.endsWith('zar')) return st.slice(0,-1)+'cé'; }
+   return s+e; }); }
+ if(tn==='i'){ if(irr.i) return irr.i; return EN.i[typ==='ar'?'ar':'er'].map(e=>st+e); }
+ if(tn==='f'||tn==='c'){ const b=irr.f||inf; return EN[tn].map(e=>b+e); }
+ if(tn==='s'){ if(irr.s) return irr.s; const yo=conj(inf,'p')[0]; const ys=yo.endsWith('o')?yo.slice(0,-1):yo;
+   return EN.s[typ==='ar'?'ar':'er'].map((e,k)=>{ let s=ys;
+     if(sc&&(k===3||k===4)){ if(typ==='ir') s=sc==='ue'?st.replace(/o([^o]*)$/,'u$1'):st.replace(/e([^e]*)$/,'i$1'); else s=st; }
+     if(typ==='ar'){ if(inf.endsWith('car')) s=s.replace(/c$/,'qu'); else if(inf.endsWith('gar')) s=s.replace(/g$/,'gu'); else if(inf.endsWith('zar')) s=s.replace(/z$/,'c'); }
+     return s+e; }); }
+ return [];
+}
+
+// ====================== ROZMÓWKI ======================
+// lines: [rola 0/1, es, pl]
+const DIALOGS=[
+ {id:'cafe',t:'W kawiarni',lv:1,roles:['Camarero (kelner)','Cliente (klient)'],lines:[
+  [0,'Buenos días. ¿Qué desea tomar?','Dzień dobry. Co podać?'],
+  [1,'Buenos días. Un café con leche, por favor.','Dzień dobry. Poproszę kawę z mlekiem.'],
+  [0,'¿Algo para comer?','Coś do jedzenia?'],
+  [1,'Sí, un bocadillo de jamón. ¿Qué tienen de postre?','Tak, kanapkę z szynką. Jakie macie desery?'],
+  [0,'Tenemos tarta de queso y flan.','Mamy sernik i flan.'],
+  [1,'Un flan, por favor. ¿Cuánto es?','Poproszę flan. Ile płacę?'],
+  [0,'Son siete euros con cincuenta.','Siedem pięćdziesiąt.'],
+  [1,'Aquí tiene. Gracias, ¡hasta luego!','Proszę. Dziękuję, do zobaczenia!']]},
+ {id:'hotel',t:'W hotelu',lv:1,roles:['Recepcionista','Huésped (gość)'],lines:[
+  [0,'Buenas tardes. ¿En qué puedo ayudarle?','Dzień dobry. W czym mogę pomóc?'],
+  [1,'Buenas tardes. Tengo una reserva a nombre de Barut.','Dzień dobry. Mam rezerwację na nazwisko Barut.'],
+  [0,'Un momento… Sí, una habitación doble para tres noches.','Chwileczkę… Tak, pokój dwuosobowy na trzy noce.'],
+  [1,'Perfecto. ¿El desayuno está incluido?','Doskonale. Czy śniadanie jest wliczone?'],
+  [0,'Sí, de siete a diez en el comedor.','Tak, od siódmej do dziesiątej w jadalni.'],
+  [1,'¿Hay wifi en la habitación?','Czy jest wifi w pokoju?'],
+  [0,'Sí, la contraseña está en la tarjeta. Su habitación es la 305.','Tak, hasło jest na karcie. Pana pokój to 305.'],
+  [1,'Muchas gracias. ¿Dónde está el ascensor?','Dziękuję. Gdzie jest winda?'],
+  [0,'Al fondo, a la derecha.','Na końcu, po prawej.']]},
+ {id:'taxi',t:'Dojazd na lotnisko',lv:1,roles:['Taxista','Pasajero (pasażer)'],lines:[
+  [1,'Buenas noches. Al aeropuerto, por favor.','Dobry wieczór. Na lotnisko poproszę.'],
+  [0,'Claro. ¿A qué terminal va?','Jasne. Do którego terminalu?'],
+  [1,'A la terminal dos. ¿Cuánto tarda?','Do terminalu drugiego. Ile to potrwa?'],
+  [0,'Unos veinte minutos, si no hay tráfico.','Około dwudziestu minut, jeśli nie będzie korków.'],
+  [1,'¿Cuánto cuesta más o menos?','Ile mniej więcej kosztuje?'],
+  [0,'Unos treinta euros.','Około trzydziestu euro.'],
+  [1,'Vale. ¿Puede parar aquí, por favor?','Dobrze. Może się pan tu zatrzymać?'],
+  [0,'Ya hemos llegado. Son treinta y dos euros.','Jesteśmy na miejscu. To 32 euro.']]},
+ {id:'tienda',t:'Zakupy: kurtka',lv:2,roles:['Dependienta (sprzedawczyni)','Cliente (klient)'],lines:[
+  [0,'Hola, ¿puedo ayudarle?','Dzień dobry, mogę pomóc?'],
+  [1,'Sí, busco una chaqueta negra.','Tak, szukam czarnej kurtki.'],
+  [0,'¿Qué talla usa?','Jaki rozmiar pan nosi?'],
+  [1,'Uso la talla M. ¿Me la puedo probar?','Rozmiar M. Mogę ją przymierzyć?'],
+  [0,'Claro, los probadores están allí.','Jasne, przymierzalnie są tam.'],
+  [1,'Me queda bien. ¿Cuánto cuesta?','Dobrze leży. Ile kosztuje?'],
+  [0,'Cuesta sesenta euros, pero hoy tiene un descuento del diez por ciento.','Kosztuje 60 euro, ale dziś jest zniżka 10%.'],
+  [1,'Perfecto, me la llevo. ¿Puedo pagar con tarjeta?','Świetnie, biorę. Mogę zapłacić kartą?']]},
+ {id:'trabajo',t:'Rozmowa o pracę',lv:3,roles:['Jefa (szefowa)','Candidato (kandydat)'],lines:[
+  [0,'Buenos días, siéntese, por favor. Cuénteme sobre usted.','Dzień dobry, proszę usiąść. Proszę opowiedzieć o sobie.'],
+  [1,'Soy ingeniero y llevo cinco años trabajando en una empresa de tecnología.','Jestem inżynierem i od pięciu lat pracuję w firmie technologicznej.'],
+  [0,'¿Por qué quiere trabajar con nosotros?','Dlaczego chce pan u nas pracować?'],
+  [1,'Porque me interesa su proyecto y quiero aprender cosas nuevas.','Bo interesuje mnie wasz projekt i chcę nauczyć się nowych rzeczy.'],
+  [0,'¿Cuáles son sus puntos fuertes?','Jakie są pana mocne strony?'],
+  [1,'Soy organizado, puntual y trabajo bien en equipo.','Jestem zorganizowany, punktualny i dobrze pracuję w zespole.'],
+  [0,'¿Cuándo podría empezar?','Kiedy mógłby pan zacząć?'],
+  [1,'Podría empezar el mes que viene.','Mógłbym zacząć w przyszłym miesiącu.']]}
+];
+const SCENES=[
+ {id:'cafe',t:'Kawiarnia',d:'Sofia jest kelnerką w kawiarni w Madrycie, ja jestem klientem zamawiającym jedzenie i picie.'},
+ {id:'hotel',t:'Hotel',d:'Sofia jest recepcjonistką hotelu, ja jestem gościem, który właśnie przyjechał.'},
+ {id:'taxi',t:'Dojazd',d:'Sofia jest taksówkarką albo pracownicą dworca; pytam o drogę, bilety i czas dojazdu.'},
+ {id:'tienda',t:'Zakupy',d:'Sofia jest sprzedawczynią w sklepie z ubraniami; pytam o rozmiar, cenę i płacę.'},
+ {id:'trabajo',t:'Praca',d:'Sofia prowadzi ze mną rozmowę kwalifikacyjną lub jest współpracownicą w biurze.'},
+ {id:'medico',t:'U lekarza',d:'Sofia jest lekarką; opisuję objawy i pytam o leczenie.'}
+];
+
+// ====================== NARZĘDZIA ======================
+const $=(s,e=document)=>e.querySelector(s), $$=(s,e=document)=>[...e.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[rnd(a.length)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayS=()=>ymd(new Date());
+const dnum=s=>{const [y,m,d]=s.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5)};
+const fromDnum=n=>{const d=new Date(n*864e5);return ymd(new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()))};
+const todayN=()=>dnum(todayS());
+const MON=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+const fmtDate=s=>{const [y,m,d]=s.split('-').map(Number);return `${d} ${MON[m-1]} ${y}`};
+const fmtMin=sec=>{const m=Math.round(sec/60);return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60} min`};
+const md=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+// ====================== PLAN: słownictwo ======================
+const VOC=[];
+WEEKS.forEach((w,wi)=>w[4].split(';').forEach((p,j)=>{const k=p.indexOf('=');if(k>0)VOC.push({id:`w${wi+1}_${j}`,es:p.slice(0,k).trim(),pl:p.slice(k+1).trim(),w:wi+1})}));
+const VOCBY={};VOC.forEach(v=>VOCBY[v.id]=v);
+const SENT=SENT_RAW.split('\n').map(l=>{const [es,pl,lv]=l.split('|');const m=es.match(/^(.*)\[(.+?)\](.*)$/);return {es:es.replace(/[\[\]]/g,''),before:m[1],ans:m[2],after:m[3],pl,lv:+lv}});
+
+// ====================== STAN + ZAPIS ======================
+function defState(){return {v:1,start:todayS(),planDay:0,settings:{mode:15,dir:'mix',fast:false,rate:0.9,auto:false,pool:'plan'},days:{},dlg:{},qlog:[],qs:{},cards:[],chats:[],created:Date.now()}}
+let S=defState(); const keyIdx={};
+let DB=null,UID=null,SM=null,DLS=null,saveState='pend',localOnly=true,loadNote='';
+const dirty=new Set(); const CH=250; let tmSave=null,flushing=false,failTimer=null,knownChunks=0;
+const LS_KEY='es_diario_v1';
+function reindex(){Object.keys(keyIdx).forEach(k=>delete keyIdx[k]);S.cards.forEach(c=>{if(c.key)keyIdx[c.key]=c})}
+function touch(k='core'){dirty.add(k);saveSoon()}
+function touchCard(c){touch('cards_'+Math.floor(c.id/CH))}
+function setStatus(s){saveState=s;if(typeof updateHeader==='function')updateHeader()}
+function saveSoon(){setStatus('pend');clearTimeout(tmSave);tmSave=setTimeout(flush,700)}
+function trimChats(){S.chats=S.chats.slice(-10);S.chats.forEach((c,i)=>{if(i<S.chats.length-2&&c.msgs.length>40)c.msgs=c.msgs.slice(-40)});
+  while(JSON.stringify(S.chats).length>200000&&S.chats.length>1)S.chats.shift();
+  while(JSON.stringify(S.chats).length>200000&&S.chats[0].msgs.length>6)S.chats[0].msgs=S.chats[0].msgs.slice(-6)}
+function docData(k){
+  if(k==='core'){const {cards,chats,...core}=S;return clone({...core,ts:Date.now()})}
+  if(k==='chat'){trimChats();return clone({chats:S.chats})}
+  const i=+k.split('_')[1];return clone({list:S.cards.slice(i*CH,(i+1)*CH)});
+}
+async function writeDoc(k,data){ if(!DB) return; await withTimeout(DB.collection('data/users/'+UID).doc(k).set(data),20000); }
+async function flush(){
+  if(flushing)return; flushing=true; clearTimeout(failTimer);
+  try{
+    try{localStorage.setItem(LS_KEY,JSON.stringify(S))}catch{}
+    while(dirty.size){
+      const k=[...dirty][0];
+      try{ await writeDoc(k,docData(k)); dirty.delete(k); }
+      catch(e){ setStatus('err'); failTimer=setTimeout(flush,15000); return; }
+    }
+    setStatus(DB?'ok':'local');
+  } finally{flushing=false}
+}
+function flushNow(){clearTimeout(tmSave);return flush()}
+const prog=s=>s?((s.planDay||0)*1e7+Object.values(s.days||{}).reduce((a,d)=>a+(d.sec||0),0)+((s.cards||[]).length)):-1;
+async function loadAll(){
+  let local=null; try{local=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch{}
+  let cloud=null;
+  if(DB){
+    for(let attempt=0;attempt<2&&!cloud;attempt++){
+      try{
+        const snap=await withTimeout(DB.collection('data/users/'+UID).get(),12000);
+        const docs={};snap.docs.forEach(d=>{docs[d.id]=d.data()});
+        if(docs.core){
+          const chunks=Object.keys(docs).filter(k=>k.startsWith('cards_')).sort((a,b)=>+a.split('_')[1]-+b.split('_')[1]);
+          cloud={...docs.core,cards:chunks.flatMap(k=>docs[k].list||[]),chats:(docs.chat&&docs.chat.chats)||[]};
+          knownChunks=chunks.length;
+        } else cloud={empty:true};
+        break;
+      }catch(e){ if(attempt===0)await sleep(1500); else {DB=null;loadNote='Nie udało się połączyć z magazynem Claude. Pracuję na kopii z tej przeglądarki i nie zapisuję w chmurze, żeby niczego nie nadpisać. Odśwież stronę, żeby spróbować ponownie.'} }
+    }
+  } else loadNote=loadNote||'Magazyn Claude (db) jest niedostępny w tym widoku — progres zapisuje się tylko w tej przeglądarce. Rób regularny eksport JSON (⚙).';
+  if(cloud&&!cloud.empty&&prog(cloud)>=prog(local)){S={...defState(),...cloud};}
+  else if(local&&(!cloud||cloud.empty||prog(local)>prog(cloud))){S={...defState(),...local}; if(DB){dirty.add('core');dirty.add('chat');for(let i=0;i*CH<S.cards.length;i++)dirty.add('cards_'+i)}}
+  else S=defState();
+  S.settings={...defState().settings,...S.settings};
+  reindex();
+  localOnly=!DB;
+  setStatus(DB?'ok':'local');
+  if(dirty.size)saveSoon();
+}
+async function replaceAll(ns){
+  const oldChunks=Math.max(knownChunks,Math.ceil(S.cards.length/CH));
+  S={...defState(),...ns}; S.settings={...defState().settings,...S.settings}; reindex();
+  dirty.clear();dirty.add('core');dirty.add('chat');
+  const nc=Math.ceil(S.cards.length/CH);
+  for(let i=0;i<nc;i++)dirty.add('cards_'+i);
+  if(DB){ for(let i=nc;i<oldChunks;i++){ try{await DB.collection('data/users/'+UID).doc('cards_'+i).delete()}catch{} } }
+  knownChunks=nc;
+  await flushNow();
+}
+
+// ====================== PLAN: pozycja, seria ======================
+const capPD=()=>Math.min(S.planDay,ND-1);
+const curWeekIdx=()=>Math.floor(capPD()/7);
+const curWeek=()=>curWeekIdx()+1;
+const curLevel=()=>levelOfWeek(curWeek());
+const dayInWeek=()=>capPD()%7;
+const dayIdx=()=>Math.max(0,todayN()-dnum(S.start));
+function dayRec(s=todayS()){return S.days[s]||(S.days[s]={sec:0,steps:{},n:0,mode:S.settings.mode,sx:0})}
+const doneToday=()=>!!(S.days[todayS()]&&S.days[todayS()].n>0);
+function planDelta(){return S.planDay-dayIdx()-(doneToday()?1:0)}
+function streak(){
+  let n=0,d=todayN(); if(S.days[fromDnum(d)]?.n>0){n=1} d--;
+  while(S.days[fromDnum(d)]?.n>0){n++;d--}
+  return n;
+}
+function bestStreak(){const ks=Object.keys(S.days).filter(k=>S.days[k].n>0).map(dnum).sort((a,b)=>a-b);let best=0,run=0,prev=-9;ks.forEach(k=>{run=(k===prev+1)?run+1:1;prev=k;if(run>best)best=run});return best}
+const totalSec=()=>Object.values(S.days).reduce((a,d)=>a+(d.sec||0),0);
+const doneDays=()=>Object.values(S.days).filter(d=>d.n>0).length;
+
+// ====================== SRS (SM-2) ======================
+function srsCalc(c,g){
+  let ef=c.ef,iv=c.iv,rp=c.rp,nef=ef,niv,nrp;
+  if(g===0){nrp=0;niv=0;nef=Math.max(1.3,ef-0.2)}
+  else if(g===1){niv=rp===0?1:Math.max(iv+1,Math.round(iv*1.2));nef=Math.max(1.3,ef-0.15);nrp=rp+1}
+  else if(g===2){niv=rp===0?1:rp===1?3:Math.max(iv+1,Math.round(iv*ef));nrp=rp+1}
+  else {niv=rp===0?3:rp===1?6:Math.max(iv+2,Math.round(iv*ef*1.3));nef=ef+0.1;nrp=rp+1}
+  return {ef:nef,iv:niv,rp:nrp};
+}
+function srsApply(c,g){const r=srsCalc(c,g);c.ef=r.ef;c.iv=r.iv;c.rp=r.rp;c.due=todayN()+r.iv;c.sn=(c.sn||0)+1;if(g===0)c.lp=(c.lp||0)+1;touchCard(c)}
+function fmtIv(d){return d<=0?'teraz':d===1?'1 d':d<30?d+' d':d<365?Math.round(d/30)+' mies.':(d/365).toFixed(1).replace('.',',')+' r.'}
+function newCard(o){
+  const c={id:S.cards.length,key:o.key,es:o.es,pl:o.pl,ex:o.ex||'',tg:o.tg||[],src:o.src||'o',ef:2.5,iv:0,rp:0,due:todayN(),lp:0,sn:0,d:todayN()};
+  if(o.fd)c.fd=o.fd;
+  S.cards.push(c);if(c.key)keyIdx[c.key]=c;touchCard(c);return c;
+}
+function addCardOnce(o){
+  const ex=keyIdx[o.key];
+  if(ex){ if(ex.x){ex.x=0;ex.due=todayN();ex.iv=0;ex.rp=0;touchCard(ex);return {c:ex,isNew:true}} return {c:ex,isNew:false} }
+  return {c:newCard(o),isNew:true};
+}
+function addVocabCard(v){return addCardOnce({key:'v:'+v.id,es:v.es,pl:v.pl,tg:[LVN[levelOfWeek(v.w)],'t'+v.w],src:'p'})}
+function errCard(o){ // błędna odpowiedź → fiszka do powtórki
+  const r=addCardOnce(o); const c=r.c;
+  if(!r.isNew){c.due=todayN();c.rp=0;c.iv=0;c.lp=(c.lp||0)+1;c.ef=Math.max(1.3,c.ef-0.15);touchCard(c)}
+  return r;
+}
+const activeCards=()=>S.cards.filter(c=>!c.x);
+const dueCards=()=>activeCards().filter(c=>c.due<=todayN());
+const matureCount=()=>activeCards().filter(c=>c.iv>=21).length;
+
+// ====================== SPRAWDZANIE ODPOWIEDZI ======================
+const norm=s=>String(s).toLowerCase().replace(/\(.*?\)/g,' ').replace(/[¿?¡!.,;:"“”«»…]/g,' ').replace(/\s+/g,' ').trim();
+const fold=s=>s.replace(/ñ/g,'\u0001').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l').replace(/\u0001/g,'ñ');
+const noArt=s=>s.replace(/^(el|la|los|las|un|una|unos|unas)\s+/,'');
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+const tol=len=>len<=4?0:len<=8?1:len<=14?2:Math.floor(len*0.12);
+const splitAlts=a=>String(a).replace(/\(.*?\)/g,' ').split('/').map(x=>x.trim()).filter(Boolean);
+function judge(input,answers){
+  const u=norm(input); if(!u) return {ok:false};
+  const cands=[]; answers.forEach(a=>splitAlts(a).forEach(x=>{const n=norm(x);if(n){cands.push(n);const na=noArt(n);if(na!==n)cands.push(na)}}));
+  if(cands.includes(u)||cands.includes(noArt(u))) return {ok:true};
+  const fu=fold(u),fc=cands.map(fold);
+  if(fc.includes(fu)||fc.includes(noArt(fu))) return {ok:true,note:'Uwaga na akcenty — poprawnie: '};
+  for(const c of fc){ if(lev(fu,c)<=tol(c.length)||lev(noArt(fu),c)<=tol(c.length)) return {ok:true,note:'Drobna literówka — poprawnie: '}; }
+  return {ok:false};
+}
+const hintOf=a=>{const s=splitAlts(a)[0]||'';return s.split(' ').map(w=>w[0]+'_'.repeat(Math.max(0,w.length-1))).join(' ')};
+
+// ====================== MOWA ======================
+let VOICE=null;
+const hasSpeech=()=>{try{return 'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'}catch{return false}};
+function pickVoice(){try{const vs=speechSynthesis.getVoices();VOICE=vs.find(v=>/^es[-_]ES/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}catch{}}
+function speak(t,rate){
+  if(!hasSpeech())return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/\(.*?\)/g,' ').replace(/\//g,', '));u.lang='es-ES';if(VOICE)u.voice=VOICE;u.rate=rate||S.settings.rate||0.9;speechSynthesis.speak(u)}catch{}
+}
+if(hasSpeech()){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch{}}
+
+// ====================== GENERATOR QUIZÓW ======================
+function vocabSource(){ // zwraca [{es,pl,w}] zależnie od ustawienia puli
+  if(S.settings.pool==='cards'){const a=activeCards().filter(c=>c.src!=='e'&&!/^(s|c):/.test(c.key||'')).map(c=>({es:c.es,pl:c.pl,w:0,id:c.key}));if(a.length>=6)return a}
+  const w=curWeek();return VOC.filter(v=>v.w<=w);
+}
+function pickWords(n,focus){
+  const w=curWeek(),pool=vocabSource(); if(!pool.length)return [];
+  const near=pool.filter(v=>v.w>=w-2),out=[],seen=new Set();
+  let guard=0;
+  while(out.length<n&&guard++<200){
+    const src=(focus||Math.random()<0.5)&&near.length?near:pool;
+    const v=pick(src); if(!seen.has(v.es)){seen.add(v.es);out.push(v)}
+    if(seen.size>=pool.length)break;
+  }
+  return out;
+}
+function distractors(v,dir,n=3){
+  const w=curWeek(),pool=VOC.filter(x=>x.w<=Math.max(w,3)&&x.es!==v.es);
+  const key=dir==='es-pl'?'pl':'es', out=[],seen=new Set([v[key]]);
+  for(const x of shuffle(pool)){const t=x[key];if(!seen.has(t)){seen.add(t);out.push(t)}if(out.length>=n)break}
+  return out;
+}
+const availVerbs=()=>VERBS.filter(v=>v[2]<=curWeek());
+const availTenses=()=>TENSES.filter(t=>t.w<=curWeek());
+function pickSentence(){const L=curLevel();const pool=SENT.filter(s=>s.lv<=L);const cur=pool.filter(s=>s.lv===L);return pick(Math.random()<0.6&&cur.length?cur:pool)}
+function genQ(type,focus){
+  if(type==='abcd'){const v=pickWords(1,focus)[0];if(!v)return null;const dir=Math.random()<0.5?'es-pl':'pl-es';
+    const ans=dir==='es-pl'?v.pl:v.es, prompt=dir==='es-pl'?v.es:v.pl;
+    return {t:'abcd',dir,prompt,ans,opts:shuffle([ans,...distractors(v,dir)]),w:v}}
+  if(type==='pl-es'||type==='es-pl'){const v=pickWords(1,focus)[0];if(!v)return null;
+    return type==='pl-es'?{t:'type',dir:'pl-es',prompt:v.pl,answers:[v.es],w:v,speak:false}:{t:'type',dir:'es-pl',prompt:v.es,answers:[v.pl],w:v,speak:true}}
+  if(type==='gap'){const s=pickSentence();const L=curLevel();
+    const others=shuffle(SENT.filter(x=>x!==s&&x.ans.toLowerCase()!==s.ans.toLowerCase())).slice(0,3).map(x=>x.ans);
+    return {t:'gap',s,choice:L===1||Math.random()<0.4,opts:shuffle([s.ans,...others])}}
+  if(type==='build'){const s=pickSentence();const toks=s.es.split(' ');if(toks.length<3)return genQ('build');return {t:'build',s,toks:shuffle(toks.map((w,i)=>({w,i})))}}
+  if(type==='listen'){ if(curWeek()>=13&&Math.random()<0.5){const s=pickSentence();return {t:'listen',say:s.es,answers:[s.es],pl:s.pl,key:'s:'+fold(norm(s.es))}}
+    const v=pickWords(1,focus)[0];if(!v)return null;return {t:'listen',say:v.es,answers:[v.es],pl:v.pl,w:v}}
+  if(type==='conj'){const vs=availVerbs(),ts=availTenses();if(!vs.length)return null;
+    const tn=pick(ts);const v=pick(vs.filter(x=>tn.k==='p'||x[2]>=0));const idx=rnd(6);const forms=conj(v[0],tn.k);
+    return {t:'conj',inf:v[0],pl:v[1],tn,idx,ans:forms[idx]}}
+  if(type==='pairs'){const ws=pickWords(5,focus);if(ws.length<4)return null;return {t:'pairs',pairs:ws}}
+  return null;
+}
+function availTypes(){
+  const t=['abcd','pl-es','es-pl','gap','build','pairs'];
+  if(hasSpeech())t.push('listen');
+  if(curWeek()>=2&&availVerbs().length)t.push('conj');
+  return t;
+}
+function buildQuiz(n,types,focus){
+  const ty=types||availTypes();const out=[];let i=0,guard=0;const order=shuffle(ty);
+  while(out.length<n&&guard++<n*6){const q=genQ(order[i++%order.length],focus);if(q)out.push(q)}
+  return out;
+}
+const QNAME={abcd:'ABCD','pl-es':'Tłumaczenie PL→ES','es-pl':'Tłumaczenie ES→PL',gap:'Luki w zdaniu',pairs:'Dopasuj pary',build:'Ułóż zdanie',conj:'Odmiana czasowników',listen:'Słuchanie'};
+
+// ====================== UI: wspólne ======================
+let TAB='today',GOAL=null,OVCANCEL=null,toastT=null;
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),2600)}
+const spk=t=>hasSpeech()?`<button class="btn sm ghost" data-a="spk" data-t="${esc(t)}" aria-label="Odsłuchaj">▶ Odsłuchaj</button>`:'';
+function confirmBox(msg,ok='Tak',danger=false){return new Promise(res=>{const mo=$('#modal');mo.hidden=false;
+  mo.innerHTML=`<div class="box"><div>${md(msg)}</div><div class="row"><button class="btn ghost sp" data-m="no">Anuluj</button><button class="btn ${danger?'':'pri'} sp" ${danger?'style="background:var(--bad);border-color:var(--bad);color:#fff"':''} data-m="yes">${esc(ok)}</button></div></div>`;
+  mo.onclick=e=>{const b=e.target.closest('[data-m]');if(!b&&e.target!==mo)return;mo.hidden=true;mo.innerHTML='';mo.onclick=null;res(b?.dataset.m==='yes')}})}
+function showModal(html,onclick){const mo=$('#modal');mo.hidden=false;mo.innerHTML=`<div class="box">${html}</div>`;
+  mo.onclick=e=>{if(e.target===mo){closeModal();return}const b=e.target.closest('[data-m]');if(b&&onclick)onclick(b,e)}}
+function closeModal(){const mo=$('#modal');mo.hidden=true;mo.innerHTML='';mo.onclick=null}
+function openOv(opts={}){
+  const ov=$('#ov');ov.hidden=false;ov.scrollTop=0;OVCANCEL=opts.onCancel||null;
+  ov.innerHTML=`<div class="ovin"><div class="ovtop"><button class="btn sm ghost" data-a="ovclose" aria-label="Zamknij">✕</button><div class="bar"><i id="ovbar" style="width:0%"></i></div><span class="tiny mut" id="ovcnt"></span></div><div id="ovbody" class="col" style="flex:1"></div></div>`;
+  document.body.style.overflow='hidden';
+  return {body:$('#ovbody'),bar:p=>{const e=$('#ovbar');if(e)e.style.width=Math.round(p*100)+'%'},cnt:t=>{const e=$('#ovcnt');if(e)e.textContent=t}};
+}
+function closeOv(){const ov=$('#ov');ov.hidden=true;ov.innerHTML='';document.body.style.overflow='';OVCANCEL=null;try{speechSynthesis.cancel()}catch{}render()}
+function delegate(body,map){body.onclick=e=>{const b=e.target.closest('[data-q]');if(!b||b.disabled)return;const f=map[b.dataset.q];if(f)f(b,e)}}
+
+// ====================== NAWIGACJA / NAGŁÓWEK ======================
+const views={today:vToday,plan:vPlan,cards:vCards,practice:vPractice,sofia:vSofia};
+function go(t){TAB=t;try{history.replaceState(null,'','#'+t)}catch{}render();window.scrollTo(0,0)}
+function render(){
+  $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB));
+  views[TAB]($('#main'));updateHeader();
+}
+function updateHeader(){
+  const st=streak(),sec=S.days[todayS()]?.sec||0,due=dueCards().length;
+  const stat={ok:['Zapisano','ok'],pend:['Zapisuję…',''],err:['Błąd zapisu','bad'],local:['Tylko lokalnie','acc']}[saveState]||['',''];
+  const ch=$('#chips');if(!ch)return;
+  ch.innerHTML=`<span class="chip ${doneToday()?'ok':''}">Seria <b>${st}</b></span><span class="chip">Dziś <b>${Math.round(sec/60)}</b> min</span><span class="chip ${stat[1]}">${stat[0]}</span>`;
+  const dd=$('#dueDot');if(dd){dd.hidden=!due;dd.textContent=due>99?'99+':due}
+  const bn=$('#banner');if(bn){const t=loadNote||(saveState==='err'?'Nie udało się zapisać w magazynie Claude. Ponowię próbę za chwilę; możesz też zrobić eksport JSON w ustawieniach (⚙).':'');bn.innerHTML=t?`<div>${esc(t)}</div>`:''}
+}
+
+// ====================== DZIŚ ======================
+const STEPS=['fc','lesson','quiz','sofia'];
+function vToday(m){
+  const wi=curWeekIdx(),W=WEEKS[wi],d=dayInWeek(),F=DAYFOCUS[d],lv=curLevel(),day=dayRec(),mode=S.settings.mode;
+  const due=dueCards().length,cap=mode===15?10:20,nq=mode===15?6:12,ns=mode===15?2:5;
+  const all=()=>STEPS.every(k=>day.steps[k]);
+  if(!day.steps.fc&&due===0&&!all()){day.steps.fc=1;touch('core')}
+  const finished=all(),dl=planDelta();
+  const dlChip=dl===0?['Na bieżąco','ok']:dl>0?[`Do przodu +${dl} dn.`,'ok']:[`Do tyłu ${dl} dn.`,'bad'];
+  const pct=Math.round(S.planDay/ND*100);
+  const nextKey=STEPS.find(k=>!day.steps[k]);
+  const det={fc:due?`${Math.min(due,cap)} z ${due} kart do powtórki`:'Brak kart do powtórki',lesson:`${F.t} · ${W[0]}`,quiz:`${nq} pytań, różne typy zadań`,sofia:`${ns} wymiany po hiszpańsku${GOAL&&!day.steps.sofia?` (${GOAL.got}/${GOAL.need})`:''}`};
+  const ttl={fc:'Powtórka fiszek',lesson:'Nowa lekcja',quiz:'Quiz',sofia:'Rozmowa z Sofią'};
+  const dots=Array.from({length:14},(_,i)=>{const s=fromDnum(todayN()-13+i),r=S.days[s];return `<i class="dotd ${r?.n>0?'on':r?.sec>60?'part':''} ${i===13?'now':''}" title="${fmtDate(s)}"></i>`}).join('');
+  const lagHint=dl<=-3?`<div class="small mut">Plan przesunął się o ${-dl} dn. Nic nie przepadło: kontynuujesz od miejsca, w którym skończyłeś. Żeby nadrobić, wybierz tryb 30 min albo zrób sesje bonusowe.</div>`:'';
+  m.innerHTML=`
+  <div class="card col">
+    <div class="row wrap"><span class="chip acc">${LVN[lv]}</span><span class="chip">Tydzień <b>${wi+1}</b>/52</span><span class="chip">Dzień <b>${d+1}</b>/7</span><span class="chip">Miesiąc <b>${Math.floor(wi/4)+1}</b>/13</span><span class="sp"></span><span class="chip ${dlChip[1]}">${dlChip[0]}</span></div>
+    <h2>${esc(W[0])}</h2>
+    <div class="small mut">Gramatyka: <b style="color:var(--fg)">${esc(W[1])}</b><br>Słownictwo: <b style="color:var(--fg)">${esc(W[3])}</b></div>
+    <div class="row"><div class="bar sp"><i style="width:${pct}%"></i></div><span class="tiny mut">${pct}% planu</span></div>
+    ${S.planDay>=ND?'<div class="fb good">Plan A1→B2 ukończony. Sesje dalej powtarzają materiał z ostatniego tygodnia.</div>':''}
+    ${lagHint}
+  </div>
+  <div class="seg"><button data-a="mode" data-v="15" class="${mode===15?'on':''}">15 min · minimum</button><button data-a="mode" data-v="30" class="${mode===30?'on':''}">30 min · pełna</button></div>
+  ${finished?`<div class="card col"><h2 class="ok">Dzień zaliczony ✓</h2><p class="mut">Seria: <b style="color:var(--fg)">${streak()}</b> dn. · Dziś: ${fmtMin(day.sec)}. ${dl>0?'Jesteś do przodu z planem.':''}</p>
+    <button class="btn pri full" data-a="bonus">Bonus: kolejny dzień planu</button>
+    <div class="small mut">Bonus przesuwa plan o jeden dzień do przodu (dzień ${d+1<7?d+2:1} tygodnia ${d+1<7?wi+1:Math.min(NW,wi+2)}).</div></div>`:''}
+  <div class="col">${STEPS.map((k,i)=>`<div class="step ${day.steps[k]?'done':k===nextKey?'next':''}"><div class="n">${day.steps[k]?'✓':i+1}</div><div class="sp"><b>${ttl[k]}</b><div class="small mut">${esc(det[k])}</div></div><button class="btn sm ${k===nextKey&&!finished?'pri':''}" data-a="step" data-s="${k}">${day.steps[k]?'Jeszcze raz':'Start'}</button></div>`).join('')}</div>
+  <div class="card col"><h3>Zadanie dnia</h3><div>${esc(F.task)}</div></div>
+  <div class="card col"><div class="row"><h3 class="sp">Ostatnie 14 dni</h3><span class="tiny mut">Łącznie: ${fmtMin(totalSec())}</span></div><div class="dots">${dots}</div></div>
+  ${finished?'':`<div class="row"><span class="sp"></span><button class="btn sm ghost" data-a="manual">Zrobiłem to poza apką — odhacz dzień</button></div>`}`;
+}
+const A={};
+A.tab=b=>go(b.dataset.t);
+A.mode=b=>{S.settings.mode=+b.dataset.v;touch('core');render()};
+A.spk=b=>speak(b.dataset.t);
+A.ovclose=()=>{const f=OVCANCEL;closeOv();f&&f()};
+A.step=b=>startStep(b.dataset.s);
+A.bonus=()=>{const day=dayRec();day.steps={};touch('core');render()};
+A.manual=async()=>{if(await confirmBox('Oznaczyć dzisiejszy dzień planu jako zrobiony, bez przechodzenia kroków?','Odhacz')){completeSession();render()}};
+function completeSession(){const day=dayRec();day.n=(day.n||0)+1;if(S.planDay<ND)S.planDay++;STEPS.forEach(k=>day.steps[k]=1);day.mode=S.settings.mode;GOAL=null;touch('core');toast('Dzień zaliczony — seria: '+streak())}
+function markStep(k){const day=dayRec();if(day.steps[k])return;day.steps[k]=1;touch('core');if(STEPS.every(x=>day.steps[x]))completeSession()}
+function startStep(k){
+  const mode=S.settings.mode;
+  if(k==='fc'){const cap=mode===15?10:20;const list=dueCards().sort((a,b)=>a.due-b.due||Math.random()-.5).slice(0,cap);
+    if(!list.length){markStep('fc');render();toast('Brak kart do powtórki — krok zaliczony');return}
+    runReview(list,{onDone:()=>markStep('fc')});return}
+  if(k==='lesson'){openLesson();return}
+  if(k==='quiz'){const qs=buildQuiz(mode===15?6:12,null,dayInWeek()===6);if(!qs.length){toast('Brak pytań — sprawdź ustawienia puli słówek');return}runQuiz(qs,{kind:'sesja',onDone:()=>markStep('quiz')});return}
+  if(k==='sofia'){GOAL={need:mode===15?2:5,got:0};go('sofia')}
+}
+
+// ====================== LEKCJA ======================
+function dialogForWeek(wi){const ds=DIALOGS.filter(d=>d.lv<=levelOfWeek(wi+1));return ds[wi%ds.length]}
+function openLesson(){
+  const wi=curWeekIdx(),W=WEEKS[wi],d=dayInWeek(),F=DAYFOCUS[d];
+  const words=VOC.filter(v=>v.w===wi+1),half=Math.ceil(words.length/2);
+  const list=F.words==='a'?words.slice(0,half):F.words==='b'?words.slice(half):F.words==='all'?words:[];
+  const dlg=d===5?dialogForWeek(wi):null;
+  const ov=openOv();
+  ov.body.innerHTML=`<div class="row wrap"><span class="chip acc">${LVN[levelOfWeek(wi+1)]}</span><span class="chip">Tydzień ${wi+1} · dzień ${d+1}/7</span></div>
+  <h2>${esc(F.t)}</h2><div class="mut">${esc(W[0])}</div>
+  <details class="card" ${F.note==='full'?'open':''}><summary><b style="color:var(--fg)">Gramatyka: ${esc(W[1])}</b></summary><div class="note" style="margin-top:8px">${md(W[2])}</div></details>
+  ${list.length?`<div class="card col"><h3>Nowe słówka: ${esc(W[3])}</h3><div class="col">${list.map(v=>`<div class="row"><div class="sp"><b>${esc(v.es)}</b><div class="small mut">${esc(v.pl)}</div></div>${hasSpeech()?`<button class="btn sm ghost" data-a="spk" data-t="${esc(v.es)}" aria-label="Odsłuchaj">▶</button>`:''}</div>`).join('')}</div></div>`:''}
+  <div class="card col"><h3>Zadanie</h3><div>${esc(F.task)}</div></div>
+  ${dlg?`<button class="btn full" data-q="dlg">Przećwicz rozmówkę: ${esc(dlg.t)}</button>`:''}
+  <button class="btn pri full" data-q="done">${list.length?`Gotowe — dodaj ${list.length} słówek do fiszek`:'Gotowe'}</button>
+  <button class="btn ghost full" data-q="all">Dodaj do fiszek wszystkie słówka tygodnia (${words.length})</button>`;
+  delegate(ov.body,{
+    dlg:()=>runDialog(dlg),
+    all:()=>{let n=0;words.forEach(v=>{if(addVocabCard(v).isNew)n++});toast(n?`Dodano ${n} fiszek`:'Wszystkie już masz w fiszkach')},
+    done:()=>{let n=0;list.forEach(v=>{if(addVocabCard(v).isNew)n++});closeOv();markStep('lesson');render();toast(n?`Dodano ${n} nowych fiszek — powtórzysz je w zakładce Fiszki`:'Lekcja zaliczona')}
+  });
+}
+
+// ====================== POWTÓRKA FISZEK ======================
+function runReview(list,opt={}){
+  const ov=openOv();let q=[...list],total=list.length,done=0,stat=[0,0,0,0];
+  const names=['Nie umiem','Trudne','Dobrze','Łatwo'];
+  function show(){
+    if(!q.length)return fin();
+    const c=q[0],dir=c.fd||(S.settings.dir==='mix'?pick(['es-pl','pl-es']):S.settings.dir);
+    const front=dir==='es-pl'?c.es:c.pl,back=dir==='es-pl'?c.pl:c.es;
+    ov.bar(done/total);ov.cnt(`${done}/${total}`);
+    ov.body.innerHTML=`<div class="card fcard"><div class="tiny mut">${dir==='es-pl'?'Hiszpański → polski':'Polski → hiszpański'}</div><div class="big">${esc(front)}</div>${dir==='es-pl'?spk(c.es):''}
+      <div id="back" hidden class="col" style="align-items:center"><div class="big" style="color:var(--acc)">${esc(back)}</div>${dir==='pl-es'?spk(c.es):''}${c.ex?`<div class="mut">${esc(c.ex)}</div>`:''}</div></div>
+      <button class="btn pri full" data-q="show" id="showb">Pokaż odpowiedź</button>
+      <div id="grades" class="grades" hidden>${[0,1,2,3].map(g=>`<button class="btn" data-q="g" data-g="${g}"><span>${names[g]}</span><small class="mut">${fmtIv(srsCalc(c,g).iv)}</small></button>`).join('')}</div>`;
+    if(dir==='es-pl'&&S.settings.auto)speak(c.es);
+    delegate(ov.body,{
+      show:()=>{$('#back').hidden=false;$('#grades').hidden=false;$('#showb').hidden=true;if(dir==='pl-es'&&S.settings.auto)speak(c.es)},
+      g:b=>{const g=+b.dataset.g;srsApply(c,g);stat[g]++;q.shift();if(g===0)q.splice(Math.min(3,q.length),0,c);else done++;show()}
+    });
+  }
+  function fin(){
+    ov.bar(1);ov.cnt('');
+    const good=stat[2]+stat[3],tot=stat.reduce((a,b)=>a+b,0);
+    ov.body.innerHTML=`<div class="card col" style="align-items:center;text-align:center"><h2>Powtórka skończona</h2><p class="mut">${total} kart · ${tot} odpowiedzi · ${tot?Math.round(good/tot*100):0}% dobrze lub łatwo</p><p class="small mut">Nie umiem: ${stat[0]} · Trudne: ${stat[1]} · Dobrze: ${stat[2]} · Łatwo: ${stat[3]}</p></div><button class="btn pri full" data-q="end">Zamknij</button>`;
+    delegate(ov.body,{end:()=>{closeOv();opt.onDone&&opt.onDone();render()}});
+  }
+  show();
+}
+
+// ====================== QUIZ ======================
+const wkey=w=>/^w\d+_\d+$/.test(w.id||'')?'v:'+w.id:(w.id||('o:'+fold(norm(w.es))));
+function errWord(w){return errCard({key:wkey(w),es:w.es,pl:w.pl,tg:['błąd'],src:'e'})}
+function errSentence(s){const r=errCard({key:'s:'+fold(norm(s.es)),es:s.es,pl:s.pl,tg:['zdanie'],src:'e',fd:'pl-es'});r.c.fd='pl-es';return r}
+function recQ(key,ok){const q=S.qs[key]||(S.qs[key]={n:0,ok:0});q.n++;if(ok)q.ok++;touch('core')}
+const CHARS='áéíóúñü¿¡'.split('');
+const inputRow=es=>`<input id="qin" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Wpisz odpowiedź…">${es?`<div class="chars">${CHARS.map(c=>`<button data-q="ch" data-c="${c}" type="button">${c}</button>`).join('')}</div>`:''}`;
+function bindInput(ctx,check){const inp=$('#qin');if(!inp)return;inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check()}});setTimeout(()=>{try{inp.focus()}catch{}},50);
+  ctx.map.ch=b=>{const s=inp.selectionStart??inp.value.length;inp.value=inp.value.slice(0,s)+b.dataset.c+inp.value.slice(inp.selectionEnd??s);inp.focus();const p=s+1;try{inp.setSelectionRange(p,p)}catch{}}}
+const R={};
+R.abcd=(q,ctx)=>{
+  ctx.body.innerHTML=`<div class="mut small">Wybierz tłumaczenie</div><div class="card fcard"><div class="big">${esc(q.prompt)}</div>${q.dir==='es-pl'?spk(q.w.es):''}</div><div class="opts">${q.opts.map(o=>`<button class="opt" data-q="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div><div id="fbx"></div>`;
+  ctx.map.opt=b=>{const good=b.dataset.v===q.ans;$$('.opt',ctx.body).forEach(x=>{x.disabled=true;if(x.dataset.v===q.ans)x.classList.add('good')});if(!good)b.classList.add('wrong');ctx.done(good,good?'':`Poprawna odpowiedź: <b>${esc(q.ans)}</b>`)};
+};
+R.type=(q,ctx)=>{
+  ctx.body.innerHTML=`<div class="mut small">${q.dir==='pl-es'?'Przetłumacz na hiszpański':'Przetłumacz na polski'}</div><div class="card fcard"><div class="big">${esc(q.prompt)}</div>${q.speak?spk(q.w.es):''}</div>${inputRow(q.dir==='pl-es')}
+  <div class="row"><button class="btn ghost sm" data-q="hint">Podpowiedź</button><button class="btn ghost sm" data-q="idk">Nie wiem</button><span class="sp"></span><button class="btn pri" data-q="check">Sprawdź</button></div><div id="fbx"></div>`;
+  const check=()=>{const v=$('#qin').value;if(!v.trim())return;const r=judge(v,q.answers);$('#qin').disabled=true;ctx.done(r.ok,r.ok?(r.note?`${r.note}<b>${esc(q.answers[0])}</b>`:(splitAlts(q.answers[0]).length>1?`Pełna odpowiedź: <b>${esc(q.answers[0])}</b>`:'')):`Poprawna odpowiedź: <b>${esc(q.answers[0])}</b>`)};
+  ctx.map.check=check;ctx.map.idk=()=>{$('#qin').disabled=true;ctx.done(false,`Poprawna odpowiedź: <b>${esc(q.answers[0])}</b>`)};
+  ctx.map.hint=()=>{$('#fbx').innerHTML=`<div class="mut">Podpowiedź: <b style="letter-spacing:.1em">${esc(hintOf(q.answers[0]))}</b></div>`};
+  bindInput(ctx,check);
+};
+R.listen=(q,ctx)=>{
+  ctx.body.innerHTML=`<div class="mut small">Posłuchaj i wpisz, co słyszysz</div><div class="card fcard"><button class="btn pri" data-q="play">▶ Odtwórz</button><button class="btn sm ghost" data-q="slow">Wolniej</button></div>${inputRow(true)}
+  <div class="row"><button class="btn ghost sm" data-q="idk">Nie wiem</button><span class="sp"></span><button class="btn pri" data-q="check">Sprawdź</button></div><div id="fbx"></div>`;
+  const check=()=>{const v=$('#qin').value;if(!v.trim())return;const r=judge(v,q.answers);$('#qin').disabled=true;ctx.done(r.ok,(r.ok?(r.note?`${r.note}<b>${esc(q.say)}</b><br>`:''):`Brzmiało: <b>${esc(q.say)}</b><br>`)+`<span class="mut">${esc(q.pl)}</span>`)};
+  ctx.map.play=()=>speak(q.say);ctx.map.slow=()=>speak(q.say,0.6);ctx.map.check=check;
+  ctx.map.idk=()=>{$('#qin').disabled=true;ctx.done(false,`Brzmiało: <b>${esc(q.say)}</b><br><span class="mut">${esc(q.pl)}</span>`)};
+  bindInput(ctx,check);setTimeout(()=>speak(q.say),300);
+};
+R.gap=(q,ctx)=>{
+  const s=q.s;
+  ctx.body.innerHTML=`<div class="mut small">Uzupełnij lukę</div><div class="card fcard"><div class="big" style="font-size:22px">${esc(s.before)}<span class="acc">_____</span>${esc(s.after)}</div><div class="mut">${esc(s.pl)}</div></div>
+  ${q.choice?`<div class="opts">${q.opts.map(o=>`<button class="opt" data-q="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`:`${inputRow(true)}<div class="row"><button class="btn ghost sm" data-q="idk">Nie wiem</button><span class="sp"></span><button class="btn pri" data-q="check">Sprawdź</button></div>`}<div id="fbx"></div>`;
+  const fb=(ok)=>ok?`<span class="mut">${esc(s.es)}</span>`:`Poprawnie: <b>${esc(s.es)}</b>`;
+  ctx.map.opt=b=>{const good=b.dataset.v.toLowerCase()===s.ans.toLowerCase();$$('.opt',ctx.body).forEach(x=>{x.disabled=true;if(x.dataset.v.toLowerCase()===s.ans.toLowerCase())x.classList.add('good')});if(!good)b.classList.add('wrong');ctx.done(good,fb(good))};
+  const check=()=>{const v=$('#qin').value;if(!v.trim())return;const r=judge(v,[s.ans]);$('#qin').disabled=true;ctx.done(r.ok,(r.ok&&r.note?r.note+'<b>'+esc(s.ans)+'</b><br>':'')+fb(r.ok))};
+  ctx.map.check=check;ctx.map.idk=()=>{const i=$('#qin');if(i)i.disabled=true;ctx.done(false,fb(false))};
+  if(!q.choice)bindInput(ctx,check);
+};
+R.conj=(q,ctx)=>{
+  ctx.body.innerHTML=`<div class="mut small">Wpisz formę czasownika</div><div class="card fcard"><div class="chip acc">${esc(q.tn.n)}</div><div class="big"><span class="acc">${esc(PRON[q.idx])}</span> + ${esc(q.inf)}</div><div class="mut">${esc(q.pl)}</div></div>${inputRow(true)}
+  <div class="row"><button class="btn ghost sm" data-q="idk">Nie wiem</button><span class="sp"></span><button class="btn pri" data-q="check">Sprawdź</button></div><div id="fbx"></div>`;
+  const check=()=>{const v=$('#qin').value.trim().toLowerCase();if(!v)return;$('#qin').disabled=true;const ok=v===q.ans;
+    ctx.done(ok,ok?`<span class="mut">${esc(conj(q.inf,q.tn.k).map((f,i)=>PRON[i].split(' ')[0]+' '+f).join(' · '))}</span>`:(fold(v)===fold(q.ans)?'Sprawdź akcent! ':'')+`Poprawnie: <b>${esc(q.ans)}</b>`)};
+  ctx.map.check=check;ctx.map.idk=()=>{$('#qin').disabled=true;ctx.done(false,`Poprawnie: <b>${esc(q.ans)}</b>`)};
+  bindInput(ctx,check);
+};
+R.build=(q,ctx)=>{
+  const placed=[];
+  const paint=()=>{
+    $('#slot').innerHTML=placed.map(i=>`<button class="tok" data-q="rm" data-i="${i}">${esc(q.toks.find(t=>t.i===i).w)}</button>`).join('');
+    $('#pool').innerHTML=q.toks.filter(t=>!placed.includes(t.i)).map(t=>`<button class="tok" data-q="add" data-i="${t.i}">${esc(t.w)}</button>`).join('');
+  };
+  ctx.body.innerHTML=`<div class="mut small">Ułóż zdanie po hiszpańsku</div><div class="card fcard"><div class="big" style="font-size:22px">${esc(q.s.pl)}</div></div><div class="slot" id="slot"></div><div id="pool"></div>
+  <div class="row"><button class="btn ghost sm" data-q="clr">Wyczyść</button><span class="sp"></span><button class="btn pri" data-q="check">Sprawdź</button></div><div id="fbx"></div>`;
+  paint();
+  ctx.map.add=b=>{placed.push(+b.dataset.i);paint()};ctx.map.rm=b=>{placed.splice(placed.indexOf(+b.dataset.i),1);paint()};ctx.map.clr=()=>{placed.length=0;paint()};
+  ctx.map.check=()=>{if(placed.length!==q.toks.length){toast('Użyj wszystkich słów');return}
+    const mine=placed.map(i=>q.toks.find(t=>t.i===i).w).join(' ');const ok=mine===q.s.es;
+    ctx.done(ok,ok?'':`Poprawnie: <b>${esc(q.s.es)}</b>`)};
+};
+R.pairs=(q,ctx)=>{
+  const n=q.pairs.length,left=shuffle(q.pairs.map((p,i)=>({i,t:p.es}))),right=shuffle(q.pairs.map((p,i)=>({i,t:p.pl})));
+  let se=null,sp=null,hit=0,errs=0;
+  ctx.body.innerHTML=`<div class="mut small">Dopasuj hiszpańskie słowa do polskich</div><div class="pairs"><div class="col" id="pe">${left.map(x=>`<button data-q="pe" data-s="e" data-i="${x.i}">${esc(x.t)}</button>`).join('')}</div><div class="col" id="pp">${right.map(x=>`<button data-q="pe" data-s="p" data-i="${x.i}">${esc(x.t)}</button>`).join('')}</div></div><div id="fbx"></div>`;
+  ctx.map.pe=b=>{
+    if(b.classList.contains('hit'))return;
+    const side=b.dataset.s;
+    $$(`[data-s="${side}"]`,ctx.body).forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');if(side==='e')se=b;else sp=b;
+    if(se&&sp){
+      const ok=se.dataset.i===sp.dataset.i,a=se,c=sp;se=sp=null;
+      if(ok){a.classList.remove('sel');c.classList.remove('sel');a.classList.add('hit');c.classList.add('hit');hit++;
+        if(hit===n)ctx.done(errs===0,errs?`Pomyłek: ${errs}`:'Bez pomyłek',true)}
+      else{errs++;a.classList.add('miss');c.classList.add('miss');errWord(q.pairs[+a.dataset.i]);setTimeout(()=>{[a,c].forEach(x=>x.classList.remove('miss','sel'))},450)}
+    }
+  };
+};
+function runQuiz(qs,opt={}){
+  const ov=openOv({onCancel:()=>{}});let i=0,ok=0,wrongList=[],added=0;
+  function next(){
+    if(i>=qs.length)return fin();
+    const q=qs[i];ov.bar(i/qs.length);ov.cnt(`${i+1}/${qs.length}`);
+    ov.body.innerHTML='<div id="qarea" class="col"></div><div id="qfb" class="col"></div>';
+    const area=$('#qarea'),ctx={body:area,map:{},locked:false,done(correct,html,skip){
+      if(ctx.locked)return;ctx.locked=true;
+      const key=q.t==='type'?q.dir:q.t;recQ(key,correct);
+      if(correct)ok++;else{wrongList.push(q);if(!skip){const r=onWrong(q);if(r&&r.isNew)added++}}
+      $('#qfb').innerHTML=`<div class="fb ${correct?'good':'wrong'}"><b>${correct?'Dobrze!':'Niepoprawnie.'}</b> ${html||''}${!correct?'<div class="tiny mut" style="margin-top:4px">Dodano do fiszek do powtórki.</div>':''}</div><button class="btn pri full" data-q="next">${i+1<qs.length?'Dalej':'Zobacz wynik'}</button>`;
+      ctx.map.next=()=>{i++;next()};
+      window.scrollTo(0,document.body.scrollHeight);$('#ov').scrollTo?.(0,$('#ov').scrollHeight);
+    }};
+    R[q.t](q,ctx);
+    // jedno delegowanie na całość
+    ov.body.onclick=e=>{const b=e.target.closest('[data-q]');if(!b||b.disabled)return;const f=ctx.map[b.dataset.q];if(f)f(b,e)};
+  }
+  function onWrong(q){
+    if(q.t==='abcd'||q.t==='type')return errWord(q.w);
+    if(q.t==='listen')return q.w?errWord(q.w):errSentence({es:q.say,pl:q.pl});
+    if(q.t==='gap'||q.t==='build')return errSentence(q.s);
+    if(q.t==='conj')return errCard({key:`c:${q.inf}:${q.tn.k}:${q.idx}`,es:q.ans,pl:`${PRON[q.idx]} + ${q.inf} (${q.tn.n})`,tg:['odmiana'],src:'e',fd:'pl-es'});
+  }
+  function fin(){
+    ov.bar(1);ov.cnt('');
+    S.qlog.push({d:todayS(),k:opt.kind||'mix',ok,n:qs.length,w:curWeek()});if(S.qlog.length>300)S.qlog=S.qlog.slice(-300);touch('core');
+    const pct=Math.round(ok/qs.length*100);
+    ov.body.onclick=null;
+    ov.body.innerHTML=`<div class="card col" style="align-items:center;text-align:center"><h2>Wynik: ${ok}/${qs.length} (${pct}%)</h2><p class="${pct>=70?'ok':'bad'}">${pct>=85?'Świetnie!':pct>=70?'Dobrze, tak trzymaj.':'Dobra robota, że ćwiczysz błędy — wrócą w fiszkach.'}</p>${added?`<p class="small mut">Nowe fiszki z błędów: ${added}</p>`:''}</div>
+      ${wrongList.length?`<div class="card col"><h3>Do poprawy</h3>${wrongList.slice(0,12).map(q=>`<div class="small">${esc(q.t==='abcd'||q.t==='type'?q.prompt+' → '+(q.ans||q.answers[0]):q.t==='gap'||q.t==='build'?q.s.es:q.t==='conj'?q.inf+' · '+q.tn.n+' → '+q.ans:q.t==='listen'?q.say:'pary słówek')}</div>`).join('')}</div>`:''}
+      <button class="btn pri full" data-q="end">Zakończ</button>`;
+    delegate(ov.body,{end:()=>{closeOv();opt.onDone&&opt.onDone({ok,n:qs.length});render()}});
+  }
+  next();
+}
+
+// ====================== ROZMÓWKI ======================
+function runDialog(d){
+  const ov=openOv();let me=1,showPl=true,pos=0;
+  function pickRole(){
+    ov.bar(0);ov.cnt('');
+    ov.body.innerHTML=`<h2>${esc(d.t)}</h2><div class="mut">Wybierz swoją rolę. Kwestie partnera przeczytam na głos.</div>
+    <button class="btn full" data-q="role" data-r="0">Gram: ${esc(d.roles[0])}</button><button class="btn full" data-q="role" data-r="1">Gram: ${esc(d.roles[1])}</button>
+    <label class="row"><input type="checkbox" id="shpl" ${showPl?'checked':''} style="width:auto"> <span class="small">Pokazuj tłumaczenia</span></label>
+    <details><summary>Podejrzyj cały dialog</summary><div class="dl" style="margin-top:8px">${d.lines.map(l=>`<div class="dline"><div class="who">${esc(d.roles[l[0]])}</div><div>${esc(l[1])}</div><div class="small mut">${esc(l[2])}</div></div>`).join('')}</div></details>`;
+    delegate(ov.body,{role:b=>{me=+b.dataset.r;showPl=$('#shpl').checked;pos=0;step()}});
+  }
+  function step(){
+    ov.bar(pos/d.lines.length);ov.cnt(`${Math.min(pos+1,d.lines.length)}/${d.lines.length}`);
+    if(pos>=d.lines.length){
+      S.dlg[d.id]=(S.dlg[d.id]||0)+1;touch('core');
+      ov.body.innerHTML=`<div class="card col" style="align-items:center;text-align:center"><h2>Rozmówka przećwiczona</h2><p class="mut">Rola: ${esc(d.roles[me])}. Spróbuj teraz zagrać drugą rolę albo odegraj scenkę z Sofią.</p></div><button class="btn full" data-q="swap">Zagraj drugą rolę</button><button class="btn pri full" data-q="end">Zamknij</button>`;
+      delegate(ov.body,{swap:()=>{me=1-me;pos=0;step()},end:()=>{closeOv();render()}});return;
+    }
+    const l=d.lines[pos],mine=l[0]===me;
+    const hist=d.lines.slice(0,pos).map(x=>`<div class="dline ${x[0]===me?'me':''}"><div class="who">${esc(d.roles[x[0]])}</div><div>${esc(x[1])}</div>${showPl?`<div class="small mut">${esc(x[2])}</div>`:''}</div>`).join('');
+    ov.body.innerHTML=`<div class="dl">${hist}</div>
+    <div class="dline ${mine?'me':''}"><div class="who">${esc(d.roles[l[0]])}${mine?' · Twoja kwestia':''}</div>
+      ${mine?`<div class="big" style="font-size:20px;text-align:left">${esc(l[2])}</div><div id="line" hidden><div style="color:var(--acc);font-size:18px;font-weight:600">${esc(l[1])}</div></div>`:`<div style="font-size:18px;font-weight:600">${esc(l[1])}</div>${showPl?`<div class="small mut">${esc(l[2])}</div>`:''}`}
+    </div>
+    <div class="row wrap">${hasSpeech()?`<button class="btn sm ghost" data-q="say">▶ Odsłuchaj</button>`:''}${mine?`<button class="btn sm ghost" data-q="reveal">Pokaż po hiszpańsku</button>`:''}<span class="sp"></span><button class="btn pri" data-q="next">${mine?'Powiedziałem/am — dalej':'Dalej'}</button></div>`;
+    delegate(ov.body,{say:()=>speak(l[1]),reveal:b=>{$('#line').hidden=false;b.disabled=true},next:()=>{pos++;step()}});
+    if(!mine)speak(l[1]);
+    setTimeout(()=>{$('#ov').scrollTo?.(0,$('#ov').scrollHeight)},50);
+  }
+  pickRole();
+}
+
+// ====================== FISZKI ======================
+let cFilter='all',cQuery='';
+function vCards(m){
+  const due=dueCards().length,act=activeCards();
+  const decks=[1,2,3,4].map(lv=>{const ws=VOC.filter(v=>levelOfWeek(v.w)===lv);const have=ws.filter(v=>{const c=keyIdx['v:'+v.id];return c&&!c.x}).length;return {lv,total:ws.length,have}});
+  m.innerHTML=`
+  <div class="card col"><div class="row"><div class="sp"><b style="font-size:22px">${due}</b> do powtórki<div class="small mut">${act.length} fiszek · ${matureCount()} utrwalonych</div></div><button class="btn pri" data-a="reviewAll" ${due?'':'disabled'}>Powtarzaj</button></div></div>
+  <div class="card col"><h3>Dodaj własne słówko</h3>
+    <label class="f">Hiszpański<input id="nes" autocomplete="off" autocapitalize="none" placeholder="np. la nevera"></label>
+    <label class="f">Polski<input id="npl" autocomplete="off" placeholder="np. lodówka"></label>
+    <label class="f">Przykładowe zdanie (opcjonalnie)<input id="nex" autocomplete="off" placeholder="np. La leche está en la nevera."></label>
+    <label class="f">Tagi (po przecinku)<input id="ntg" autocomplete="off" placeholder="dom, kuchnia"></label>
+    <button class="btn pri" data-a="addcard">Dodaj fiszkę</button></div>
+  <div class="card col"><h3>Zestawy startowe</h3><div class="small mut">Słówka z planu są dodawane do fiszek automatycznie w dni słownictwa. Tu możesz dodać cały poziom naraz.</div>
+    ${decks.map(d=>`<div class="row"><div class="sp"><b>${LVN[d.lv]}</b> <span class="small mut">${d.total} słówek · w fiszkach: ${d.have}</span></div><button class="btn sm" data-a="adddeck" data-lv="${d.lv}" ${d.have>=d.total?'disabled':''}>Dodaj brakujące (${d.total-d.have})</button></div>`).join('')}</div>
+  <div class="col"><div class="seg" id="cf">${[['all','Wszystkie'],['due','Do powtórki'],['own','Własne'],['err','Błędy']].map(([k,t])=>`<button data-a="cfilter" data-v="${k}" class="${cFilter===k?'on':''}">${t}</button>`).join('')}</div>
+    <input id="csearch" placeholder="Szukaj…" value="${esc(cQuery)}" autocomplete="off"><div id="clist" class="col"></div></div>`;
+  $('#csearch').addEventListener('input',e=>{cQuery=e.target.value;paintCards()});
+  paintCards();
+}
+function paintCards(){
+  const el=$('#clist');if(!el)return;const t=todayN();const q=fold(cQuery.toLowerCase());
+  let a=activeCards();
+  if(cFilter==='due')a=a.filter(c=>c.due<=t);else if(cFilter==='own')a=a.filter(c=>c.src==='o'||c.src==='h');else if(cFilter==='err')a=a.filter(c=>c.src==='e');
+  if(q)a=a.filter(c=>fold((c.es+' '+c.pl+' '+(c.tg||[]).join(' ')).toLowerCase()).includes(q));
+  a=a.sort((x,y)=>x.due-y.due||y.id-x.id);
+  const shown=a.slice(0,80);
+  el.innerHTML=shown.length?shown.map(c=>`<div class="row"><button class="crow" data-a="editcard" data-i="${c.id}"><div class="t"><b>${esc(c.es)}</b><div class="small mut">${esc(c.pl)}</div></div><div class="tiny ${c.due<=t?'acc':'mut'}">${c.due<=t?'do powtórki':'za '+fmtIv(c.due-t)}</div></button>${hasSpeech()?`<button class="btn sm ghost" data-a="spk" data-t="${esc(c.es)}" aria-label="Odsłuchaj">▶</button>`:''}</div>`).join('')+(a.length>80?`<div class="small mut">Pokazano 80 z ${a.length}. Zawęź wyszukiwanie.</div>`:''):'<div class="card mut">Brak fiszek w tym widoku.</div>';
+}
+A.cfilter=b=>{cFilter=b.dataset.v;$$('#cf button').forEach(x=>x.classList.toggle('on',x.dataset.v===cFilter));paintCards()};
+A.reviewAll=()=>{const list=dueCards().sort((a,b)=>a.due-b.due||Math.random()-.5);if(list.length)runReview(list.slice(0,60))};
+A.adddeck=b=>{const lv=+b.dataset.lv;let n=0;VOC.filter(v=>levelOfWeek(v.w)===lv).forEach(v=>{if(addVocabCard(v).isNew)n++});toast(`Dodano ${n} fiszek`);render()};
+A.addcard=()=>{
+  const es=$('#nes').value.trim(),pl=$('#npl').value.trim();if(!es||!pl){toast('Wpisz hiszpański i polski');return}
+  const key='o:'+fold(norm(es)),ex=keyIdx[key];
+  if(ex&&!ex.x){toast('Masz już tę fiszkę');return}
+  const tg=$('#ntg').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+  const r=addCardOnce({key,es,pl,ex:$('#nex').value.trim(),tg,src:'o'});if(!r.isNew)return;
+  const c=r.c;c.es=es;c.pl=pl;c.ex=$('#nex').value.trim();c.tg=tg;c.src='o';touchCard(c);
+  toast('Dodano fiszkę');render();
+};
+A.editcard=b=>{
+  const c=S.cards[+b.dataset.i];if(!c)return;
+  showModal(`<h2>Fiszka</h2><label class="f">Hiszpański<input id="eES" value="${esc(c.es)}"></label><label class="f">Polski<input id="ePL" value="${esc(c.pl)}"></label><label class="f">Przykład<input id="eEX" value="${esc(c.ex||'')}"></label><label class="f">Tagi<input id="eTG" value="${esc((c.tg||[]).join(', '))}"></label>
+  <div class="small mut">Interwał: ${fmtIv(c.iv)} · powtórzeń: ${c.sn||0} · pomyłek: ${c.lp||0}</div>
+  <div class="row wrap"><button class="btn pri sp" data-m="save">Zapisz</button><button class="btn sp" data-m="reset">Zeruj postęp</button></div><div class="row"><button class="btn ghost sp" data-m="del" style="color:var(--bad)">Usuń</button><button class="btn ghost sp" data-m="cancel">Anuluj</button></div>`,
+  (bt)=>{const act=bt.dataset.m;
+    if(act==='save'){c.es=$('#eES').value.trim()||c.es;c.pl=$('#ePL').value.trim()||c.pl;c.ex=$('#eEX').value.trim();c.tg=$('#eTG').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);touchCard(c)}
+    else if(act==='reset'){c.iv=0;c.rp=0;c.ef=2.5;c.due=todayN();touchCard(c)}
+    else if(act==='del'){c.x=1;touchCard(c)}
+    closeModal();render();});
+};
+
+// ====================== ĆWICZ ======================
+function vPractice(m){
+  const w=curWeek(),types=[['abcd','ABCD','Wybierz tłumaczenie'],['pl-es','PL → ES','Wpisz po hiszpańsku'],['es-pl','ES → PL','Wpisz po polsku'],['gap','Luki','Uzupełnij zdanie'],['pairs','Pary','Dopasuj słówka'],['build','Układanka','Ułóż zdanie'],['conj','Odmiana','Wpisz formę czasownika'],['listen','Słuchanie','Wpisz, co słyszysz']];
+  const avail=availTypes();
+  const stat=Object.entries(S.qs).filter(([k,v])=>v.n>0);
+  const names={abcd:'ABCD','pl-es':'PL→ES','es-pl':'ES→PL',gap:'Luki',pairs:'Pary',build:'Układanka',conj:'Odmiana',listen:'Słuchanie'};
+  m.innerHTML=`
+  <div class="card col"><h2>Quizy</h2><div class="small mut">Poziom zadań rośnie razem z planem (teraz: ${LVN[curLevel()]}, tydzień ${w}). Błędne odpowiedzi trafiają do fiszek.</div>
+    <div class="row wrap"><button class="btn pri sp" data-a="qmix">Mieszany · 15 pytań</button><button class="btn sp" data-a="qweek">Test tygodnia</button></div></div>
+  <div class="grid2">${types.map(([k,t,d])=>`<button class="gbtn" data-a="qtype" data-k="${k}" ${avail.includes(k)?'':'disabled'} style="${avail.includes(k)?'':'opacity:.45'}"><b>${t}</b><span>${avail.includes(k)?d:(k==='listen'?'brak syntezy mowy':'od tygodnia 2')}</span></button>`).join('')}</div>
+  <div class="card col"><h3>Źródło słówek</h3><div class="seg"><button data-a="pool" data-v="plan" class="${S.settings.pool==='plan'?'on':''}">Z planu</button><button data-a="pool" data-v="cards" class="${S.settings.pool==='cards'?'on':''}">Z moich fiszek</button></div></div>
+  <div class="card col"><h2>Rozmówki</h2><div class="small mut">Wybierz rolę — partnera przeczytam na głos, a Twoją kwestię zobaczysz po polsku.</div>
+    ${DIALOGS.map(d=>`<button class="crow" data-a="dialog" data-id="${d.id}"><div class="t"><b>${esc(d.t)}</b><div class="small mut">${esc(d.roles.join(' / '))}</div></div><div class="tiny mut">${LVN[d.lv]}${S.dlg[d.id]?' · ×'+S.dlg[d.id]:''}</div></button>`).join('')}</div>
+  <div class="card col"><h3>Trafność</h3>${stat.length?stat.map(([k,v])=>{const p=Math.round(v.ok/v.n*100);return `<div class="row"><span class="small" style="width:92px">${names[k]||k}</span><div class="bar ${p>=70?'ok':''} sp"><i style="width:${p}%"></i></div><span class="tiny mut" style="width:74px;text-align:right">${p}% (${v.n})</span></div>`}).join(''):'<div class="small mut">Po pierwszych quizach pojawią się tu statystyki.</div>'}</div>`;
+}
+A.qmix=()=>runQuiz(buildQuiz(15),{kind:'mix'});
+A.qweek=()=>runQuiz(buildQuiz(15,null,true),{kind:'tydzień'});
+A.qtype=b=>{const k=b.dataset.k;const qs=buildQuiz(k==='pairs'?3:10,[k]);if(!qs.length){toast('Za mało materiału na ten typ');return}runQuiz(qs,{kind:k})};
+A.pool=b=>{S.settings.pool=b.dataset.v;touch('core');render()};
+A.dialog=b=>runDialog(DIALOGS.find(d=>d.id===b.dataset.id));
+
+// ====================== PLAN ======================
+let openWeek=-1;
+function heatmap(){
+  const t=todayN(),dow=(new Date().getDay()+6)%7,end=t+(6-dow),weeks=26,start=end-weeks*7+1;
+  let h='';
+  for(let n=start;n<=end;n++){const s=fromDnum(n),r=S.days[s],min=r?r.sec/60:0;
+    const cls=n>t?'f':(!r||min<=0&&!r.n)?'':min<10?'l1':min<20?'l2':min<30?'l3':'l4';
+    h+=`<button class="hc ${cls} ${r?.n>0?'dn':''} ${n===t?'td':''}" data-a="hmday" data-d="${s}" aria-label="${s}"></button>`;}
+  return `<div class="scroll-x" id="hmwrap"><div class="hm">${h}</div></div><div class="small mut" id="hmInfo">Dotknij kwadracika, żeby zobaczyć dzień. Obwódka = zaliczony dzień planu.</div>`;
+}
+A.hmday=b=>{const s=b.dataset.d,r=S.days[s];$('#hmInfo').textContent=`${fmtDate(s)}: ${r?fmtMin(r.sec||0)+(r.n>0?` · zaliczono ${r.n}× (dzień planu)`:' · bez zaliczonego dnia'):'brak aktywności'}`};
+function vPlan(m){
+  const wi=curWeekIdx(),pct=Math.round(S.planDay/ND*100),dl=planDelta();
+  const remain=Math.max(0,ND-S.planDay-(doneToday()?0:1)),endN=todayN()+remain,end=fromDnum(endN),goal='2027-12-31',late=endN-dnum(goal);
+  const lvl=[1,2,3,4].map(l=>{const a=WEEKS.map((_,i)=>i+1).filter(w=>levelOfWeek(w)===l);const cur=a.includes(curWeek());const filled=S.planDay>=ND?a.length:Math.max(0,Math.min(a.length,(S.planDay-(a[0]-1)*7)/7));return {l,n:a.length,filled,cur}});
+  m.innerHTML=`
+  <div class="stats">
+    <div class="stat"><b>${streak()}</b><span>seria dni (rekord ${bestStreak()})</span></div>
+    <div class="stat"><b>${doneDays()}</b><span>zaliczonych dni</span></div>
+    <div class="stat"><b>${Math.floor(totalSec()/3600)} h ${Math.round(totalSec()%3600/60)} min</b><span>łączny czas nauki</span></div>
+    <div class="stat"><b>${pct}%</b><span>planu ukończone</span></div>
+  </div>
+  <div class="card col"><div class="row wrap"><h2 class="sp">Postęp A1 → B2</h2><span class="chip ${dl>=0?'ok':'bad'}">${dl===0?'Na bieżąco':dl>0?`Do przodu +${dl} dn.`:`Do tyłu ${dl} dn.`}</span></div>
+    <div class="col">${lvl.map(x=>`<div class="row"><span style="width:30px;font-weight:700" class="${x.cur?'acc':''}">${LVN[x.l]}</span><div class="bar sp"><i style="width:${Math.round(x.filled/x.n*100)}%"></i></div><span class="tiny mut" style="width:56px;text-align:right">${x.n} tyg.</span></div>`).join('')}</div>
+    <div class="small mut">Przy nauce codziennie skończysz plan około <b style="color:var(--fg)">${fmtDate(end)}</b> — ${late<=0?`<span class="ok">${-late} dn. przed celem (31 gru 2027)</span>`:`<span class="bad">${late} dn. po celu (31 gru 2027)</span>`}. Opuszczony dzień przesuwa plan, nie kasuje go.</div></div>
+  <div class="card col"><h3>Aktywność · 26 tygodni</h3>${heatmap()}</div>
+  <div class="card col"><h3>Kalendarz planu</h3><div class="small mut">Dotknij tygodnia, żeby zobaczyć gramatykę, słówka i notatkę. Możesz też ustawić go jako bieżący.</div></div>
+  ${Array.from({length:13},(_,mo)=>`<div class="col"><div class="row"><h3 class="sp">Miesiąc ${mo+1}</h3><span class="chip acc">${LVN[levelOfWeek(mo*4+1)]}</span></div>${[0,1,2,3].map(k=>{const i=mo*4+k,W=WEEKS[i],isCur=i===wi&&S.planDay<ND,past=S.planDay>=(i+1)*7;
+    return `<div class="wk ${isCur?'cur':''} ${past?'past':''}"><button data-a="wkopen" data-i="${i}"><span class="wn">${past?'✓':'T'+(i+1)}</span><span class="sp"><b>${esc(W[0])}</b><div class="small mut">${esc(W[1])} · ${esc(W[3])}</div></span></button>${openWeek===i?weekBody(i):''}</div>`}).join('')}</div>`).join('')}`;
+}
+function weekBody(i){
+  const W=WEEKS[i],words=VOC.filter(v=>v.w===i+1);
+  return `<div class="wb"><div class="note">${md(W[2])}</div><h3>Słówka: ${esc(W[3])}</h3><div class="vl">${words.map(v=>`<div class="es">${esc(v.es)}</div><div class="mut">${esc(v.pl)}</div>`).join('')}</div>
+  <div class="row wrap"><button class="btn sm" data-a="wkadd" data-i="${i}">Dodaj słówka do fiszek</button><button class="btn sm" data-a="wkset" data-i="${i}">Ustaw jako bieżący tydzień</button></div></div>`;
+}
+A.wkopen=b=>{const i=+b.dataset.i;openWeek=openWeek===i?-1:i;const y=window.scrollY;render();window.scrollTo(0,y)};
+A.wkadd=b=>{const i=+b.dataset.i;let n=0;VOC.filter(v=>v.w===i+1).forEach(v=>{if(addVocabCard(v).isNew)n++});toast(n?`Dodano ${n} fiszek`:'Masz już te fiszki')};
+A.wkset=async b=>{const i=+b.dataset.i;if(await confirmBox(`Ustawić tydzień ${i+1} jako bieżący? Plan wróci do dnia 1 tego tygodnia (fiszki i historia zostają).`,'Ustaw')){S.planDay=i*7;touch('core');toast('Zmieniono bieżący tydzień');render()}};
+
+// ====================== SOFIA ======================
+let chatBusy=false,chatErr=null,curChatId=null,GOALNOTE=false;
+const START_META='(Rozpocznij rozmowę: przywitaj się krótko jako Sofia i zadaj pierwsze proste pytanie dopasowane do poziomu. W polu korekta ustaw ok=true, bledy=[] i poprawione="".)';
+function curChat(create){
+  let c=S.chats.find(x=>x.id===curChatId)||S.chats[S.chats.length-1];
+  if(!c&&create){c=newChat();}
+  if(c)curChatId=c.id;return c;
+}
+function newChat(mode,scene){const c={id:Date.now(),ts:Date.now(),mode:mode||'free',scene:scene||'cafe',lvl:curLevel(),msgs:[]};S.chats.push(c);curChatId=c.id;touch('chat');return c}
+function sofiaSystem(chat){
+  const L=LVN[chat.lvl||curLevel()],w=curWeek();
+  const gram=WEEKS.slice(Math.max(0,w-6),w).map(x=>x[1]).join('; ');
+  const len={A1:'1–2 bardzo krótkie zdania, najprostsze słownictwo, presente',A2:'2–3 krótkie zdania; pretérito i futuro są OK',B1:'3–4 zdania; możesz używać subjuntivo i condicional',B2:'4–6 zdań, naturalny język, idiomy mile widziane'}[L];
+  const mode=chat.mode==='strict'?'TRYB OSTRY: poprawiaj WSZYSTKIE błędy (gramatyka, rodzaj, zgodność, akcenty, interpunkcja ¿ ¡, styl), do 6 pozycji w "bledy", każdą z krótkim wyjaśnieniem reguły.':'TRYB SWOBODNY: poprawiaj tylko najważniejsze błędy (maksymalnie 3), bądź wyrozumiała i ignoruj drobiazgi (wielkie litery, brak ¿).';
+  const scene=chat.mode==='scene'?`SCENKA: ${(SCENES.find(s=>s.id===chat.scene)||SCENES[0]).d} Wejdź w rolę i prowadź sytuację krok po kroku, jak w prawdziwej rozmowie.`:'Rozmowa swobodna: pytaj o życie codzienne, plany, hobby, jedzenie, podróże, pracę.';
+  return `Jesteś Sofią: Hiszpanką z Madrytu, luzacką, ciepłą i cierpliwą nauczycielką rozmowy. Rozmawiasz z Polakiem uczącym się hiszpańskiego. Jego poziom: ${L} (tydzień ${w} z 52 planu). Ostatnio ćwiczone tematy: ${gram}.
+ZASADY:
+- Pole "sofia" i "pytanie" piszesz po hiszpańsku, na poziomie ${L}: ${len}. Nie używaj struktur wyraźnie powyżej tego poziomu.
+- Po polsku piszesz tylko w "dlaczego" i "pl". Jeśli uczeń prosi o polski albo wyraźnie się zaciął (np. pisze po polsku, "no sé", "?"), ustaw "pokaz_pl": true i w "sofia" daj krótką pomoc.
+- Korekta dotyczy OSTATNIEJ wypowiedzi ucznia. "poprawione" = cała jego wypowiedź zapisana poprawnie. Jeśli napisał po polsku, "poprawione" = to samo po hiszpańsku, "bledy" puste, "ok": true.
+- Jeśli wypowiedź jest poprawna: "ok": true, "bledy": [], "poprawione": "".
+- Potem naturalna odpowiedź Sofii na treść (nie komentuj gramatyki w "sofia") i JEDNO pytanie podtrzymujące rozmowę w "pytanie".
+- "pl": tłumaczenie "sofia" + "pytanie" na polski. "slowka": do 3 słów z Twojej odpowiedzi, które mogą być dla ucznia nowe (z tłumaczeniem), albo [].
+- ${mode}
+- ${scene}
+FORMAT: odpowiadaj WYŁĄCZNIE jednym obiektem JSON, bez markdown i bez tekstu poza JSON:
+{"korekta":{"ok":true,"poprawione":"","bledy":[{"bylo":"…","powinno":"…","dlaczego":"…"}]},"sofia":"…","pytanie":"…","pl":"…","pokaz_pl":false,"slowka":[{"es":"…","pl":"…"}]}`;
+}
+function turnsFor(chat){
+  const t=[{role:'user',content:sofiaSystem(chat)}];
+  chat.msgs.slice(-16).forEach(x=>{if(x.r==='u')t.push({role:'user',content:x.meta||x.t});else if(x.r==='s')t.push({role:'assistant',content:x.raw})});
+  return t;
+}
+function vSofia(m){
+  if(!SM){m.innerHTML=`<div class="card col"><h2>Sofia</h2><p class="mut">Rozmowa z Sofią korzysta z Claude'a wbudowanego w artifact. W tym widoku jest niedostępna (otwórz artifact w Claude i zezwól na użycie Claude'a). Reszta aplikacji działa normalnie.</p></div>`;return}
+  const chat=curChat(false),mode=chat?chat.mode:'free',scene=chat?chat.scene:'cafe';
+  const hist=S.chats.slice().reverse();
+  m.innerHTML=`
+  <div class="card col"><div class="row"><h2 class="sp">Sofia · ${LVN[curLevel()]}</h2><button class="btn sm" data-a="newchat">Nowa rozmowa</button></div>
+    <div class="seg"><button data-a="smode" data-v="free" class="${mode==='free'?'on':''}">Swobodna</button><button data-a="smode" data-v="scene" class="${mode==='scene'?'on':''}">Scenka</button><button data-a="smode" data-v="strict" class="${mode==='strict'?'on':''}">Ostro</button></div>
+    ${mode==='scene'?`<select id="scenesel">${SCENES.map(s=>`<option value="${s.id}" ${s.id===scene?'selected':''}>${esc(s.t)}</option>`).join('')}</select>`:''}
+    ${mode==='strict'?'<div class="small mut">Sofia poprawia wszystko: gramatykę, akcenty, interpunkcję i styl.</div>':''}
+    ${hist.length>1?`<select id="chatsel">${hist.map(c=>`<option value="${c.id}" ${chat&&c.id===chat.id?'selected':''}>${new Date(c.ts).toLocaleDateString('pl-PL')} · ${{free:'swobodna',scene:'scenka',strict:'ostro'}[c.mode]} · ${c.msgs.filter(x=>x.r==='u'&&!x.hid).length} wiad.</option>`).join('')}</select>`:''}
+    ${GOAL?`<div class="fb ${GOAL.got>=GOAL.need?'good':''}"><b>Cel sesji:</b> ${Math.min(GOAL.got,GOAL.need)}/${GOAL.need} wypowiedzi ${GOAL.got>=GOAL.need?'— zaliczone! <button class="btn sm pri" data-a="tab" data-t="today">Wróć do Dziś</button>':'po hiszpańsku'}</div>`:''}
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <div class="composer"><div class="chars" id="schars">${CHARS.map(c=>`<button data-a="schar" data-c="${c}" type="button">${c}</button>`).join('')}</div>
+    <div class="row wrap"><button class="btn sm ghost" data-a="shelp">Podpowiedz odpowiedź</button><button class="btn sm ghost" data-a="sphrase" data-t="No entiendo. ¿Puedes decirlo más fácil?">No entiendo</button><button class="btn sm ghost" data-a="sphrase" data-t="¿Qué significa ">Co znaczy…</button></div>
+    <div class="row"><textarea id="chin" rows="2" placeholder="Escribe en español…" autocapitalize="sentences"></textarea><button class="btn pri" data-a="ssend">Wyślij</button></div></div>`;
+  const sel=$('#scenesel');if(sel)sel.addEventListener('change',e=>{const c=curChat(true);c.scene=e.target.value;touch('chat')});
+  const cs=$('#chatsel');if(cs)cs.addEventListener('change',e=>{curChatId=+e.target.value;vSofia($('#main'))});
+  const inp=$('#chin');inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();A.ssend()}});
+  paintChat();
+}
+function msgHTML(m,mi){
+  if(m.r==='u'){if(m.hid)return '';return `<div class="msg u">${esc(m.t)}</div>`}
+  const k=m.k||{};let fix='';
+  const errs=Array.isArray(k.bledy)?k.bledy:[];
+  if(k.ok===false||errs.length||(k.poprawione&&k.ok!==true)){
+    fix=`<div class="fix"><b>Korekta</b>${k.poprawione?`<div>→ <u>${esc(k.poprawione)}</u></div>`:''}${errs.length?`<ul>${errs.map(b=>`<li><s>${esc(b.bylo)}</s> → <u>${esc(b.powinno)}</u>${b.dlaczego?`<div class="mut">${esc(b.dlaczego)}</div>`:''}</li>`).join('')}</ul>`:''}</div>`;
+  } else if(k.ok===true&&!m.first){fix=`<div class="fix okx small">✓ Bez błędów</div>`}
+  const words=(m.w||[]).map((w,wi)=>{const c=keyIdx['h:'+fold(norm(w.es))];const has=c&&!c.x;return `<span class="wch">${esc(w.es)} — ${esc(w.pl)}<button data-a="addw" data-m="${mi}" data-w="${wi}" ${has?'disabled':''}>${has?'✓':'+ fiszka'}</button></span>`}).join('');
+  return `<div class="msg s">${fix}<div>${esc(m.t)}</div>${m.q?`<div class="qq">${esc(m.q)}</div>`:''}<div class="row wrap">${spk((m.t+' '+(m.q||'')).trim())}</div>${m.pl?`<details ${m.sp?'open':''}><summary>Tłumaczenie</summary><div class="small">${esc(m.pl)}</div></details>`:''}${words?`<div>${words}</div>`:''}</div>`;
+}
+function paintChat(){
+  const el=$('#msgs');if(!el)return;const chat=curChat(false);
+  let h='';
+  if(!chat||!chat.msgs.some(x=>!x.hid)&&!chat.msgs.length){h=`<div class="card col"><p class="mut">Sofia rozmawia z Tobą po hiszpańsku na Twoim poziomie. Po każdej wypowiedzi dostaniesz krótką korektę, odpowiedź i pytanie. Nowe słówka dodasz do fiszek jednym kliknięciem.</p><button class="btn pri" data-a="sstart" ${chatBusy?'disabled':''}>Zacznij rozmowę</button></div>`}
+  else h=chat.msgs.map((m,i)=>msgHTML(m,i)).join('');
+  if(chatBusy)h+='<div class="msg s typing">Sofia pisze…</div>';
+  if(chatErr)h+=`<div class="msg e">${esc(chatErr.t)}${chatErr.retry?' <button class="btn sm" data-a="sretry">Spróbuj ponownie</button>':''}</div>`;
+  el.innerHTML=h;
+  const b=$('[data-a="ssend"]');if(b)b.disabled=chatBusy;
+}
+A.newchat=()=>{const mode=curChat(false)?.mode||'free',scene=curChat(false)?.scene||'cafe';newChat(mode,scene);chatErr=null;vSofia($('#main'))};
+A.smode=b=>{const c=curChat(true);c.mode=b.dataset.v;touch('chat');vSofia($('#main'))};
+A.schar=b=>{const i=$('#chin');i.value+=b.dataset.c;i.focus()};
+A.sphrase=b=>{const i=$('#chin');i.value=b.dataset.t;i.focus()};
+A.sstart=()=>{const c=curChat(true);if(!c.msgs.length){c.msgs.push({r:'u',hid:1,t:'',meta:START_META});}sofiaCall(c)};
+A.shelp=()=>sofiaSend('💡 Pomoc','(Nie wiem, co odpowiedzieć. W polu "sofia" podaj 3 krótkie przykładowe odpowiedzi po hiszpańsku na swoje ostatnie pytanie, każdą z tłumaczeniem w nawiasie po polsku. W polu korekta: ok=true, bledy=[], poprawione="". Nowego pytania nie zadawaj, "pytanie" zostaw puste.)',true);
+A.ssend=()=>{const i=$('#chin');if(!i)return;const t=i.value.trim();if(!t||chatBusy)return;i.value='';sofiaSend(t)};
+A.sretry=()=>{const c=curChat(false);if(c){chatErr=null;sofiaCall(c)}};
+A.addw=b=>{const c=curChat(false),m=c&&c.msgs[+b.dataset.m],w=m&&m.w&&m.w[+b.dataset.w];if(!w)return;
+  addCardOnce({key:'h:'+fold(norm(w.es)),es:w.es,pl:w.pl,tg:['sofia'],src:'h'});toast('Dodano do fiszek');b.disabled=true;b.textContent='✓'};
+async function sofiaSend(text,meta,isHelp){
+  if(chatBusy||!SM)return;const c=curChat(true);
+  if(!c.msgs.length&&false){}
+  c.msgs.push({r:'u',t:text,meta:meta||''});
+  if(!isHelp){const day=dayRec();day.sx=(day.sx||0)+1;touch('core')}
+  chatErr=null;await sofiaCall(c,!isHelp);
+}
+async function sofiaCall(chat,count){
+  chatBusy=true;paintChat();window.scrollTo(0,document.body.scrollHeight);
+  try{
+    const obj=await SM.json(turnsFor(chat),{cache:false,modelTier:S.settings.fast?'quick':'default'});
+    if(!obj||typeof obj!=='object'||!obj.sofia)throw {code:'invalid_json',text:JSON.stringify(obj||'')};
+    const first=!chat.msgs.some(x=>x.r==='s');
+    chat.msgs.push({r:'s',first,raw:JSON.stringify(obj),k:obj.korekta||null,t:String(obj.sofia||''),q:String(obj.pytanie||''),pl:String(obj.pl||''),sp:!!obj.pokaz_pl,
+      w:(Array.isArray(obj.slowka)?obj.slowka:[]).slice(0,4).filter(x=>x&&x.es&&x.pl).map(x=>({es:String(x.es),pl:String(x.pl)}))});
+    touch('chat');
+    if(count&&GOAL){GOAL.got++;if(GOAL.got>=GOAL.need&&!dayRec().steps.sofia){markStep('sofia');toast('Rozmowa z Sofią zaliczona')}}
+  }catch(e){
+    const code=e&&e.code;
+    if(code==='invalid_json'&&e.text){chat.msgs.push({r:'s',raw:e.text,k:null,t:e.text,q:'',pl:'',w:[]});touch('chat')}
+    else chatErr={t:{not_granted:'Zezwól na użycie Claude\'a w tym artifacie, żeby rozmawiać z Sofią.',rate_limited:'Za dużo zapytań naraz lub limit użycia. Odczekaj chwilę i spróbuj ponownie.',sampling_disabled:'Claude jest niedostępny dla tego konta.',session_expired:'Sesja wygasła — zaloguj się ponownie w Claude.',refused:'Sofia odmówiła odpowiedzi na tę wiadomość. Spróbuj inaczej sformułować.',cancelled:'Anulowano.'}[code]||'Coś poszło nie tak po stronie Claude\'a. Spróbuj ponownie.',retry:!['not_granted','sampling_disabled','refused'].includes(code)};
+  }finally{chatBusy=false;if(TAB==='sofia'){const keep=$('#chin')?.value;vSofia($('#main'));if(keep)$('#chin').value=keep;window.scrollTo(0,document.body.scrollHeight)}else updateHeader()}
+}
+
+// ====================== USTAWIENIA / BACKUP ======================
+A.settings=()=>{
+  const ov=openOv();ov.bar(0);ov.cnt('');
+  const st=saveState,stat={ok:'zapisano w magazynie Claude',pend:'zapisuję…',err:'błąd zapisu w magazynie (ponawiam)',local:'tylko w tej przeglądarce'}[st];
+  ov.body.innerHTML=`<h2>Ustawienia</h2>
+  <div class="card col"><h3>Zapis</h3><div class="small">Stan: <b>${stat}</b></div><div class="small mut">Postęp zapisuje się w trwałym magazynie artifactu (db), a kopia lustrzana w przeglądarce. Dodatkowo rób co jakiś czas eksport JSON.</div>
+    <div class="row wrap"><button class="btn sp" data-q="export">Pobierz kopię (JSON)</button><button class="btn sp" data-q="copyjson">Kopiuj JSON</button></div>
+    <label class="f">Import z kopii — wklej JSON lub wybierz plik<textarea id="impTxt" rows="3" placeholder='{"app":"espanol-diario",…}'></textarea></label>
+    <div class="row wrap"><input type="file" id="impFile" accept=".json,application/json" style="flex:1"><button class="btn sp" data-q="import">Wczytaj kopię</button></div></div>
+  <div class="card col"><h3>Plan</h3><label class="f">Data startu planu<input type="date" id="sStart" value="${S.start}"></label><div class="small mut">Zmiana daty zmienia tylko to, czy jesteś „do przodu” czy „do tyłu”. Pozycja w planie zostaje.</div></div>
+  <div class="card col"><h3>Fiszki i wymowa</h3>
+    <label class="f">Kierunek fiszek<select id="sDir"><option value="mix" ${S.settings.dir==='mix'?'selected':''}>Mieszany</option><option value="es-pl" ${S.settings.dir==='es-pl'?'selected':''}>Hiszpański → polski</option><option value="pl-es" ${S.settings.dir==='pl-es'?'selected':''}>Polski → hiszpański</option></select></label>
+    <label class="f">Tempo mowy<select id="sRate"><option value="0.7" ${S.settings.rate==0.7?'selected':''}>Wolno</option><option value="0.9" ${S.settings.rate==0.9?'selected':''}>Normalnie</option><option value="1.05" ${S.settings.rate==1.05?'selected':''}>Szybko</option></select></label>
+    <label class="row"><input type="checkbox" id="sAuto" ${S.settings.auto?'checked':''} style="width:auto"><span class="small">Czytaj hiszpańskie słowo automatycznie</span></label>
+    <button class="btn sm" data-q="voice" ${hasSpeech()?'':'disabled'}>Test głosu (es-ES)</button><div class="tiny mut">${hasSpeech()?(VOICE?'Głos: '+esc(VOICE.name):'Brak głosu hiszpańskiego — użyję domyślnego.'):'Synteza mowy niedostępna w tym widoku.'}</div></div>
+  <div class="card col"><h3>Sofia</h3><label class="row"><input type="checkbox" id="sFast" ${S.settings.fast?'checked':''} style="width:auto"><span class="small">Szybsza Sofia (lżejszy model, krótszy czas odpowiedzi)</span></label></div>
+  <div class="card col"><h3 class="bad">Strefa zagrożenia</h3><button class="btn" style="color:var(--bad)" data-q="reset">Usuń cały progres</button></div>
+  <button class="btn pri full" data-q="save">Zapisz i zamknij</button>`;
+  delegate(ov.body,{
+    export:exportData,copyjson:async()=>{const t=exportText();try{await navigator.clipboard.writeText(t);toast('Skopiowano JSON')}catch{showExportModal(t)}},
+    voice:()=>speak('Hola, soy tu voz en español. ¿Cómo estás?'),
+    import:async()=>{
+      let txt=$('#impTxt').value.trim();const f=$('#impFile').files[0];
+      if(!txt&&f){try{txt=await f.text()}catch{toast('Nie mogę odczytać pliku');return}}
+      if(!txt){toast('Wklej JSON albo wybierz plik');return}
+      let p;try{p=JSON.parse(txt)}catch{toast('To nie jest poprawny JSON');return}
+      const s=p&&p.state?p.state:p;
+      if(!s||typeof s.planDay!=='number'||!Array.isArray(s.cards)){toast('Plik nie wygląda na kopię tej aplikacji');return}
+      if(await confirmBox(`Zastąpić obecny progres kopią? Kopia: dzień planu ${s.planDay}/${ND}, ${s.cards.length} fiszek. Tej operacji nie da się cofnąć (zrób wcześniej eksport).`,'Zastąp',true)){
+        await replaceAll(s);closeOv();toast(saveState==='err'?'Wczytano, ale zapis w magazynie się nie udał':'Wczytano kopię');
+      }},
+    reset:async()=>{if(await confirmBox('Usunąć CAŁY progres: plan, fiszki, rozmowy i statystyki? Najpierw zrób eksport, jeśli chcesz zachować kopię.','Usuń wszystko',true)&&await confirmBox('Na pewno? To jest nieodwracalne.','Tak, usuń',true)){
+      try{localStorage.removeItem(LS_KEY)}catch{}await replaceAll(defState());closeOv();toast('Progres usunięty')}},
+    save:()=>{
+      const sd=$('#sStart').value;if(sd)S.start=sd;
+      S.settings.dir=$('#sDir').value;S.settings.rate=+$('#sRate').value;S.settings.auto=$('#sAuto').checked;S.settings.fast=$('#sFast').checked;
+      touch('core');closeOv();toast('Zapisano ustawienia')}
+  });
+};
+const exportText=()=>JSON.stringify({app:'espanol-diario',v:1,exported:new Date().toISOString(),state:S});
+function showExportModal(t){showModal(`<h2>Kopia zapasowa</h2><div class="small mut">Skopiuj cały tekst i zapisz go w pliku .json (np. w notatkach lub mailu do siebie).</div><textarea id="expTxt" rows="8" readonly>${esc(t)}</textarea><div class="row"><button class="btn ghost sp" data-m="close">Zamknij</button><button class="btn pri sp" data-m="sel">Zaznacz wszystko</button></div>`,b=>{if(b.dataset.m==='sel'){const e=$('#expTxt');e.focus();e.select()}else closeModal()})}
+async function exportData(){
+  const t=exportText();
+  if(DLS){try{await DLS.save({filename:`espanol-backup-${todayS()}.json`,data:t});toast('Zapisano plik kopii');return}catch(e){if(e&&e.code==='declined')return}}
+  showExportModal(t);
+}
+
+// ====================== START ======================
+let lastAct=Date.now(),tickN=0;
+['pointerdown','keydown','touchstart','scroll'].forEach(ev=>addEventListener(ev,()=>{lastAct=Date.now()},{passive:true,capture:true}));
+setInterval(()=>{if(document.hidden||Date.now()-lastAct>45000)return;const d=dayRec();d.sec+=5;if(++tickN%6===0){touch('core');updateHeader()}},5000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushNow()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const f=A[b.dataset.a];if(f)f(b,e)});
+addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(views[h]&&h!==TAB){TAB=h;render()}});
+async function boot(){
+  const cl=window.claude;
+  if(cl&&typeof cl.use==='function'){
+    cl.use('sample').then(s=>{SM=s;if(TAB==='sofia'&&$('#ov').hidden)render()}).catch(()=>{});
+    cl.use('downloads').then(d=>{DLS=d}).catch(()=>{});
+    try{
+      const [db,user]=await Promise.race([Promise.all([cl.use('db'),cl.use('user')]),sleep(11000).then(()=>[null,null])]);
+      if(db&&user){UID=await user.id();if(UID)DB=db}
+    }catch{}
+  }
+  await loadAll();
+  dirty.add('core');saveSoon();
+  const h=location.hash.slice(1);TAB=views[h]?h:'today';
+  render();
+}
+boot();
+
+</script>
